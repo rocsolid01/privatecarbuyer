@@ -1,0 +1,19 @@
+﻿{
+    "id":  "fail_mileage",
+    "title":  "2020 High Mile Car",
+    "price":  22500,
+    "url":  "https://losangeles.craigslist.org/cto/d/los-angeles-2020-honda-accord-sport/mock.html",
+    "posted_at":  "2024-02-24T10:00:00Z",
+    "location":  "Los Angeles, CA",
+    "images":  [
+                   "https://images.craigslist.org/mock_image_1.jpg"
+               ],
+    "description":  "Clean title, low miles, one owner. Must sell moving soon. Text me at 555-0199.",
+    "attributes":  [
+                       {
+                           "value":  "200000",
+                           "label":  "odometer"
+                       }
+                   ],
+    "sellerPhone":  "+15550199"
+}

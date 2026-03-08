@@ -1,0 +1,21 @@
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows                              
+-------------------------------------------------------------------------------
+
+  Started : Monday, February 23, 2026 8:29:02 PM
+   Source = g:\My Drive\Webapp_Privatecarbuyer\
+     Dest : E:\Projects\Webapp_Privatecarbuyer\
+
+    Files : *.*
+	    
+ Exc Dirs : node_modules
+	    .next
+	    .git
+	    
+  Options : *.* /V /S /E /DCOPY:DA /COPY:DAT /NP /MT:16 /R:3 /W:5 
+
+------------------------------------------------------------------------------
+
+	       named      -1	g:\My Drive\Webapp_Privatecarbuyer\node_modules\
+	    New File  		     625	g:\My Drive\Webapp_Privatecarbuyer\.env

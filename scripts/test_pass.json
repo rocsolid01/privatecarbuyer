@@ -1,0 +1,19 @@
+﻿{
+    "id":  "pass_sniper",
+    "title":  "2022 Honda Civic - MINT",
+    "price":  22500,
+    "url":  "https://losangeles.craigslist.org/cto/d/los-angeles-2020-honda-accord-sport/mock.html",
+    "posted_at":  "2026-02-25T00:11:13Z",
+    "location":  "Los Angeles, CA",
+    "images":  [
+                   "https://images.craigslist.org/mock_image_1.jpg"
+               ],
+    "description":  "Clean title, low miles, one owner. Must sell moving soon. Text me at 555-0199.",
+    "attributes":  [
+                       {
+                           "value":  "50000",
+                           "label":  "odometer"
+                       }
+                   ],
+    "sellerPhone":  "+15550199"
+}
