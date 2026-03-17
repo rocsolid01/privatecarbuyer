@@ -139,7 +139,6 @@ def _extract_mileage_from_meta(text: str) -> Optional[int]:
         return None
     
     # regex matches: numbers followed by 'k' (optional) and 'mi' or 'miles'
-    # must NOT have 'away' or 'from' nearby to avoid distance
     # Support commas in the number
     pattern = r'([\d\.,]+k?)\s*(?:mi|miles?)'
     
@@ -147,18 +146,29 @@ def _extract_mileage_from_meta(text: str) -> Optional[int]:
         val_str = match.group(1).lower()
         full_match = match.group(0).lower()
         
-        # Check surrounding for 'away' or 'from' to skip distance
+        # Check surrounding for 'away' or 'from' to skip distance (e.g. '1 mi away')
+        # Also check if it's a very low number being used for distance (usually < 100)
         start, end = match.span()
-        context = text[end:end+10].lower()
+        context = text[end:end+15].lower()
+        
+        # If it says 'away' or 'from' immediately after, it's definitely distance
         if 'away' in context or 'from' in context:
             continue
-
+            
         try:
-            # Clean commas
             temp = val_str.replace(',', '')
             if temp.endswith('k'):
-                return int(float(temp[:-1]) * 1000)
-            return int(float(temp))
+                mileage = int(float(temp[:-1]) * 1000)
+            else:
+                mileage = int(float(temp))
+            
+            # Distance protection: if it's less than 500 and matched 'mi' 
+            # without 'miles', it's highly likely to be distance (e.g. '1 mi')
+            # Real car mileage is almost always > 500.
+            if mileage < 500 and ('miles' not in full_match):
+                continue
+                
+            return mileage
         except ValueError:
             continue
     return None
@@ -342,6 +352,10 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
     if meta_el:
         meta_text = (await meta_el.inner_text()).strip()
         mileage = _extract_mileage_from_meta(meta_text)
+    
+    # Fallback: Extract from title if meta mileage is missing or zero
+    if not mileage:
+        mileage = _extract_mileage_from_meta(title)
 
     # Title Status (Salvage Detection)
     # If the user excluded salvage, all results are 'Clean'. 
