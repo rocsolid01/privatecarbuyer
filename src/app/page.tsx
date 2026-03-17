@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Car, Zap, Target, Shield, ArrowRight, CheckCircle2, Star, Smartphone, Globe } from 'lucide-react';
+import { Car, Zap, Target, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -20,7 +20,6 @@ export default function LandingPage() {
           </div>
           <div className="hidden md:flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
             <a href="#features" className="hover:text-indigo-400 transition-colors">The Tech</a>
-            <a href="#pricing" className="hover:text-indigo-400 transition-colors">Pricing</a>
             <a href="#how-it-works" className="hover:text-indigo-400 transition-colors">The Engine</a>
           </div>
           <div className="flex items-center gap-6">
@@ -134,78 +133,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Pricing Section */}
-        <section id="pricing" className="py-32 bg-slate-50 dark:bg-slate-900/50">
-          <div className="max-w-7xl mx-auto px-4 text-center mb-20">
-            <h2 className="text-base font-black text-blue-600 uppercase tracking-[0.2em] mb-4">Scaling Plans</h2>
-            <h3 className="text-4xl md:text-5xl font-black dark:text-white">Simple, Tiered Pricing</h3>
-          </div>
-          <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Starter */}
-            <div className="bg-white dark:bg-slate-950 p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 flex flex-col">
-              <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Solo Dealer</p>
-              <h4 className="text-5xl font-black dark:text-white mb-8">$29 <span className="text-lg text-slate-400">/mo</span></h4>
-              <ul className="space-y-4 mb-10 flex-1">
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> 1 Location Area
-                </li>
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> 1,000 Scrapes /mo
-                </li>
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> Basic AI Scoring
-                </li>
-              </ul>
-              <button className="w-full py-4 border-2 border-slate-900 dark:border-white rounded-2xl font-black hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-slate-900 transition-all">
-                Select Starter
-              </button>
-            </div>
 
-            {/* Pro - Featured */}
-            <div className="bg-white dark:bg-slate-950 p-10 rounded-[2.5rem] border-2 border-blue-600 flex flex-col relative scale-105 shadow-2xl shadow-blue-500/10">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-black tracking-widest uppercase">Most Popular</div>
-              <p className="text-sm font-black text-blue-600 uppercase tracking-widest mb-4">High Volume</p>
-              <h4 className="text-5xl font-black dark:text-white mb-8">$59 <span className="text-lg text-slate-400">/mo</span></h4>
-              <ul className="space-y-4 mb-10 flex-1">
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> Multi-State Coverage
-                </li>
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> 5,000 Scrapes /mo
-                </li>
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> Advanced AI Negotiation
-                </li>
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> priority SMS Queue
-                </li>
-              </ul>
-              <button className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black shadow-xl shadow-blue-500/30 hover:bg-blue-700 transition-all">
-                Select Pro
-              </button>
-            </div>
-
-            {/* Enterprise */}
-            <div className="bg-white dark:bg-slate-950 p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 flex flex-col">
-              <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Dealership Group</p>
-              <h4 className="text-5xl font-black dark:text-white mb-8">$99 <span className="text-lg text-slate-400">/mo</span></h4>
-              <ul className="space-y-4 mb-10 flex-1">
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> Unlimited Radius
-                </li>
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> 50,000 Scrapes /mo
-                </li>
-                <li className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-500" /> Full CRM Integration
-                </li>
-              </ul>
-              <button className="w-full py-4 border-2 border-slate-900 dark:border-white rounded-2xl font-black hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-slate-900 transition-all">
-                Contact Sales
-              </button>
-            </div>
-          </div>
-        </section>
 
         {/* CTA Footer */}
         <section className="py-32 overflow-hidden relative">

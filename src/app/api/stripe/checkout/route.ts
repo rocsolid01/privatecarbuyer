@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
             line_items: [{ price: priceId, quantity: 1 }],
             mode: 'subscription',
             success_url: process.env.NEXT_PUBLIC_APP_URL + '/dashboard',
-            cancel_url: process.env.NEXT_PUBLIC_APP_URL + '/pricing',
+            cancel_url: process.env.NEXT_PUBLIC_APP_URL + '/',
             customer_email: customerEmail,
         });
         return Response.json({ id: session.id });
