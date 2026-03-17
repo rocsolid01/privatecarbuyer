@@ -24,8 +24,8 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-6">
             <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-indigo-400 transition-colors">Log In</Link>
-            <Link href="/dashboard" className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 transition-all hover:scale-105">
-              Access Feed
+            <Link href="/settings" className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 transition-all hover:scale-105">
+              Access Control Center
             </Link>
           </div>
         </div>
@@ -48,8 +48,8 @@ export default function LandingPage() {
               The automated vehicle acquisition platform for elite dealers. Using AI to find 20%+ margin deals and send personalized SMS before your competitors even wake up.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-20">
-              <Link href="/dashboard" className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-5 rounded-2xl font-black text-lg shadow-2xl shadow-indigo-500/40 flex items-center justify-center gap-3 hover:scale-105 transition-all">
-                Access Dashboard <ArrowRight size={20} />
+              <Link href="/settings" className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-5 rounded-2xl font-black text-lg shadow-2xl shadow-indigo-500/40 flex items-center justify-center gap-3 hover:scale-105 transition-all">
+                Access Control Center <ArrowRight size={20} />
               </Link>
               <a href="#how-it-works" className="w-full sm:w-auto glass-card px-10 py-5 rounded-2xl font-black text-lg text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2">
                 The Engine

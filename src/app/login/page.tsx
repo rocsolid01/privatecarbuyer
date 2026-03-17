@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Car, Mail, Lock, ArrowRight, Github, Chrome } from 'lucide-react';
+import { Car, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function AuthPage() {
@@ -10,7 +10,7 @@ export default function AuthPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState(null as string | null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,7 +35,7 @@ export default function AuthPage() {
                 if (signUpError) throw signUpError;
                 alert('Check your email for the confirmation link!');
             }
-            window.location.href = '/dashboard';
+            window.location.href = '/settings';
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -72,7 +72,7 @@ export default function AuthPage() {
                         <div className="space-y-2">
                             <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Email Address</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+
                                 <input
                                     type="email"
                                     value={email}
@@ -92,7 +92,7 @@ export default function AuthPage() {
                                 )}
                             </div>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+
                                 <input
                                     type="password"
                                     value={password}
@@ -120,10 +120,10 @@ export default function AuthPage() {
 
                     <div className="mt-8 grid grid-cols-2 gap-4">
                         <button className="flex items-center justify-center gap-2 py-3 border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-sm dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                            <Chrome size={18} className="text-red-500" /> Google
+                            Google
                         </button>
                         <button className="flex items-center justify-center gap-2 py-3 border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-sm dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                            <Github size={18} /> GitHub
+                            GitHub
                         </button>
                     </div>
                 </div>
