@@ -1,28 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { ScrapeHistoryTable } from '@/components/ScrapeHistoryTable';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { TOOLTIP_CONTENT } from '@/lib/tooltip-content';
-import {
-    TrendingUp,
-    BarChart3,
-    PieChart,
-    Users,
-    Zap,
-    Activity,
-    Shield,
-    Radar,
-    ArrowUpRight,
-    ArrowDownRight
-} from 'lucide-react';
+import { Zap, ArrowRight, Clock, ExternalLink, MessageSquare, MapPin, Target } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Lead, ScrapeRun } from '@/types/database';
 
 export default function AnalyticsPage() {
-    const [leads, setLeads] = useState<Lead[]>([]);
-    const [runs, setRuns] = useState<ScrapeRun[]>([]);
+    const [leads, setLeads] = useState([] as Lead[]);
+    const [runs, setRuns] = useState([] as ScrapeRun[]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -51,7 +41,7 @@ export default function AnalyticsPage() {
             value: runs.length.toString(),
             change: '+2',
             positive: true,
-            icon: Activity,
+            icon: Clock,
             color: 'text-blue-500'
         },
         {
@@ -69,7 +59,7 @@ export default function AnalyticsPage() {
             value: (runs.length > 0 ? (leads.length / runs.length).toFixed(1) : '0'),
             change: '+1.5',
             positive: true,
-            icon: Radar,
+            icon: Target,
             color: 'text-purple-500'
         },
         {
@@ -78,7 +68,7 @@ export default function AnalyticsPage() {
             value: ((leads.filter((l: any) => l.status === 'Bought').length / (leads.length || 1)) * 100).toFixed(1) + '%',
             change: '0%',
             positive: true,
-            icon: Shield,
+            icon: MessageSquare,
             color: 'text-indigo-500'
         },
     ];
@@ -108,7 +98,7 @@ export default function AnalyticsPage() {
                                     <stat.icon size={24} />
                                 </div>
                                 <div className={`flex items-center gap-1 text-[10px] font-black italic ${stat.positive ? 'text-emerald-500' : 'text-red-500'}`}>
-                                    {stat.positive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                                    <ArrowRight size={14} className={stat.positive ? "" : "rotate-90"} />
                                     {stat.change}
                                 </div>
                             </div>
@@ -129,7 +119,7 @@ export default function AnalyticsPage() {
                 <div className="space-y-8 mb-16">
                     <div className="flex items-center justify-between px-4">
                         <div className="flex items-center gap-4">
-                            <Activity className="text-indigo-500" size={24} />
+                            <Clock className="text-indigo-500" size={24} />
                             <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Strategic Pulse History</h2>
                         </div>
                         <div className="flex items-center gap-5">

@@ -32,6 +32,7 @@ export type Settings = {
     auto_scan_enabled: boolean;
     consecutive_empty_runs: number;
     last_scan_at: string | null;
+    last_pulse_at: string | null;
     pulse_interval: number;
     max_items_per_city: number;
     unicorn_threshold: number;
@@ -51,6 +52,10 @@ export type Settings = {
     sms_exclude_keywords: string[];
     body_styles: string[];
     priority_models: string[];
+    daily_budget_usd: number;
+    budget_spent_today: number;
+    last_budget_reset_at: string | null;
+    exclude_salvage: boolean;
     updated_at: string;
 };
 
@@ -70,6 +75,7 @@ export type Lead = {
     ai_recon_est: number | null;
     ai_notes: string | null;
     status: 'New' | 'Contacted' | 'Negotiating' | 'Meeting Set' | 'Bought' | 'Dead';
+    title_status: string | null;
     dealer_id: string; // References Profile.id
     created_at: string;
 };

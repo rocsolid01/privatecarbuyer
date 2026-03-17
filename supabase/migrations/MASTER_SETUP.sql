@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS public.settings (
   crm_webhook_url TEXT,
   telnyx_phone_number TEXT DEFAULT '+1234567890',
   recon_multiplier NUMERIC DEFAULT 1.0,
+  last_pulse_at TIMESTAMPTZ DEFAULT '1970-01-01 00:00:00+00',
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -62,6 +63,7 @@ ALTER TABLE public.settings ADD COLUMN IF NOT EXISTS ai_persona TEXT DEFAULT 'Pr
 ALTER TABLE public.settings ADD COLUMN IF NOT EXISTS crm_webhook_url TEXT;
 ALTER TABLE public.settings ADD COLUMN IF NOT EXISTS telnyx_phone_number TEXT DEFAULT '+1234567890';
 ALTER TABLE public.settings ADD COLUMN IF NOT EXISTS recon_multiplier NUMERIC DEFAULT 1.0;
+ALTER TABLE public.settings ADD COLUMN IF NOT EXISTS exclude_salvage BOOLEAN DEFAULT TRUE;
 
 CREATE TABLE IF NOT EXISTS public.leads (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -110,6 +112,10 @@ ALTER TABLE public.leads DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages DISABLE ROW LEVEL SECURITY;
 
 -- 4. Initialize Data
+INSERT INTO public.profiles (id, email, location, zip)
+VALUES ('00000000-0000-0000-0000-000000000000', 'demo@privatecarbuyer.com', 'Los Angeles, CA', '90001')
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO public.settings (
   id, 
   makes, 

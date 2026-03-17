@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
         const msgData = payload.data?.payload;
 
         if (!eventType || !msgData) {
-            return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
+            return Response.json({ error: 'Invalid payload' }, { status: 400 });
         }
 
         // 1. Handle Inbound Message
@@ -51,9 +51,9 @@ export async function POST(req: NextRequest) {
                 .eq('external_message_id', externalId);
         }
 
-        return NextResponse.json({ success: true });
+        return Response.json({ success: true });
     } catch (error: any) {
         console.error('Telnyx Webhook Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return Response.json({ error: error.message }, { status: 500 });
     }
 }

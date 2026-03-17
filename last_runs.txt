@@ -1,0 +1,7 @@
+﻿[dotenv@17.3.1] injecting env (11) from .env -- tip: ΓÜÖ∩╕Å  load multiple .env files with { path: ['.env.local', '.env'] }
+Last 5 Scrape Runs:
+- [2026-03-11T07:33:43.468368+00:00] Status: Success | Mode: HOT ZONE | Error: null
+- [2026-03-11T07:33:23.442964+00:00] Status: Error | Mode: HOT ZONE | Error: Input is not valid: Field input.category must be equal to one of the allowed values: "sss", "jjj", "hhh", "ccc", "eee", "ggg", "rrr", "bbb"
+- [2026-03-11T07:32:33.039922+00:00] Status: Error | Mode: HOT ZONE | Error: Input is not valid: Field input.category must be equal to one of the allowed values: "sss", "jjj", "hhh", "ccc", "eee", "ggg", "rrr", "bbb"
+- [2026-03-11T07:21:56.662364+00:00] Status: Success | Mode: HOT ZONE | Error: null
+- [2026-03-11T07:20:55.865284+00:00] Status: Success | Mode: FAR SWEEP | Error: null

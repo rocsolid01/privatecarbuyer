@@ -1,0 +1,61 @@
+﻿[dotenv@17.3.1] injecting env (11) from .env -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`
+Fetching system settings...
+Settings: {
+  "id": "00000000-0000-0000-0000-000000000000",
+  "makes": [
+    "Toyota",
+    "Honda",
+    "Ford",
+    "Chevrolet"
+  ],
+  "models": [],
+  "year_min": 2015,
+  "year_max": 2024,
+  "mileage_max": 500000,
+  "price_min": 0,
+  "price_max": 100000,
+  "keywords": [],
+  "sms_numbers": [],
+  "locations": [
+    "losangeles",
+    "orangecounty",
+    "phoenix"
+  ],
+  "condition_include": [
+    "clean title",
+    "low miles"
+  ],
+  "condition_exclude": [
+    "rebuilt",
+    "flood",
+    "salvage"
+  ],
+  "motivation_keywords": [
+    "must sell",
+    "moving",
+    "cash only"
+  ],
+  "post_age_max": 24,
+  "margin_min": 1500,
+  "updated_at": "2026-03-11T07:34:42.784+00:00",
+  "zip": "90001",
+  "auto_scan_enabled": true,
+  "consecutive_empty_runs": 0,
+  "last_scan_at": "2026-03-07T06:10:22.727+00:00",
+  "sms_auto_enabled": true,
+  "radius": 50,
+  "active_hour_start": 7,
+  "active_hour_end": 23,
+  "batch_size": 5,
+  "pulse_interval": 30,
+  "max_items_per_city": 2,
+  "unicorn_threshold": 4000,
+  "outreach_sms_goal": "Ask for bottom dollar",
+  "ai_persona": "Professional but casual car buyer",
+  "crm_webhook_url": null,
+  "telnyx_phone_number": null,
+  "recon_multiplier": 1,
+  "daily_budget_usd": 1,
+  "budget_spent_today": 0,
+  "last_budget_reset_at": "2026-03-11T08:24:30.35+00:00"
+}

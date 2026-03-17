@@ -1,4 +1,5 @@
 import { Settings } from '@/types/database';
+import { supabase, adminSupabase } from '@/lib/supabase';
 
 declare var process: { env: { APIFY_TOKEN?: string } };
 
@@ -96,58 +97,90 @@ function getRandomFingerprint() {
 }
 
 /**
- * Maps dealership settings to the input format required by the
- * fatihtahta/craigslist-scraper actor.
+ * Maps dealership settings to a consolidated input format for a single Apify run.
  */
-export function getApifyActorInput(settings: Settings, isDeepScrape = false) {
-    const currentCity = settings.locations[0] || 'losangeles';
+export function getApifyActorInput(settings: Settings, cities: string[], isDeepScrape = false) {
+    // Generate startUrls for each city strictly in the "cto" (cars-by-owner) category
+    const startUrls = cities.map(city => ({
+        url: `https://${city}.craigslist.org/search/cto?purveyor=owner&sort=date&min_auto_year=${settings.year_min}&max_auto_year=${settings.year_max}&min_price=${settings.price_min}&max_price=${settings.price_max}&max_auto_miles=${settings.mileage_max}`
+    }));
 
-    // We use queries for keywords and startUrls for the specific category search
-    const startUrls = [{
-        url: `https://${currentCity}.craigslist.org/search/cto?purveyor=owner&sort=date&min_auto_year=${settings.year_min}&max_auto_year=${settings.year_max}&min_price=${settings.price_min}&max_price=${settings.price_max}&max_auto_miles=${settings.mileage_max}`
-    }];
-
-    const allQueries = (settings.makes || [])
+    // Keywords are now specifically targeted within the car category
+    const carKeywords = (settings.makes || [])
         .concat(settings.models || [])
         .concat(settings.condition_include || [])
         .concat(settings.motivation_keywords || []);
 
     return {
         startUrls: startUrls.map(s => s.url),
-        queries: allQueries,
-        maxItems: isDeepScrape ? 50 : 8, // Economy Mode: Small batches to save cost
+        queries: carKeywords,
+        category: 'sss',            // "For Sale" is the valid top-level category
+        // BUDGET OPTIMIZATIONS:
+        scrapeDetail: isDeepScrape, // Only click through if it's a "Deep Scrape"
+        downloadImages: false,      // Save 80% proxy data; we still get URL
+        purveyor: 'owner',          // Enforce Private Sellers only
+        postedToday: true,          // Only fresh leads
+        minPrice: settings.price_min || 500, // Price floor
+        maxPagesPerSearch: 2,       // Tightened for even more budget safety
+        maxItems: isDeepScrape ? 50 : Math.min(500, (settings.max_items_per_city || 100) * cities.length), 
+        // STEALTH SETTINGS:
+        ...getRandomFingerprint(),
+        useSessionPool: true,
         proxyConfiguration: {
-            useApifyProxy: true
+            useApifyProxy: true,
+            apifyProxyGroups: [] // Use shared datacenter proxies for cost efficiency
         }
     };
 }
 
 export async function runScraper(settings: Settings, isDeepScrape = false, force = false) {
+    const now = new Date();
     const APIFY_TOKEN = typeof process !== 'undefined' ? process.env.APIFY_TOKEN : null;
     if (!APIFY_TOKEN) {
         throw new Error('APIFY_TOKEN is not configured');
     }
 
-    // 1. Smart Sleep & Pulse Logic: Pulse every X Minutes (User Defined)
-    const pulseInterval = settings.pulse_interval ?? 15;
-    const now = new Date();
-    const currentHour = now.getHours();
+    // 1. Budget Guardrail & Reset Logic
+    const dailyBudget = settings.daily_budget_usd ?? 1.00;
+    let spentToday = settings.budget_spent_today ?? 0;
+    const lastReset = settings.last_budget_reset_at ? new Date(settings.last_budget_reset_at) : new Date(0);
+    
+    // Reset budget if it's a new day (UTC)
+    const isNewDay = now.getUTCDate() !== lastReset.getUTCDate() || 
+                     now.getUTCMonth() !== lastReset.getUTCMonth() || 
+                     now.getUTCFullYear() !== lastReset.getUTCFullYear();
 
-    // 2. Dynamic Active Window (Defined in Settings)
+    if (isNewDay) {
+        console.log('[Budget] New day detected. Resetting spent amount.');
+        spentToday = 0;
+        await adminSupabase.from('settings').update({
+            budget_spent_today: 0,
+            last_budget_reset_at: now.toISOString()
+        }).eq('id', settings.id);
+    }
+
+    if (spentToday >= dailyBudget && !force) {
+        console.warn(`[Budget] Daily limit reached ($${spentToday}/$${dailyBudget}). Skipping pulse.`);
+        return { success: false, reason: 'budget-exceeded', wait: 1440 - (now.getUTCHours() * 60 + now.getUTCMinutes()) };
+    }
+
+    // 2. Smart Sleep & Pulse Logic
+    const pulseInterval = settings.pulse_interval ?? 15;
+    const currentHour = now.getHours();
     const activeStart = settings.active_hour_start ?? 7;
     const activeEnd = settings.active_hour_end ?? 22;
 
-    if (currentHour < activeStart || currentHour >= activeEnd && !force) {
+    if ((currentHour < activeStart || currentHour >= activeEnd) && !force) {
         console.log(`[Smart Sleep] Night mode (${activeEnd}PM-${activeStart}AM). Skipping pulse.`);
         return { success: false, reason: 'sleeping', wait: (currentHour < activeStart ? (activeStart - currentHour) : (24 - currentHour + activeStart)) * 60 - now.getMinutes() };
     }
 
-    const lastRun = settings.updated_at ? new Date(settings.updated_at) : new Date(0);
+    const lastRun = settings.last_pulse_at ? new Date(settings.last_pulse_at) : new Date(0);
     const diffMins = (now.getTime() - lastRun.getTime()) / (1000 * 60);
 
     if (diffMins < pulseInterval && !force) {
         const remaining = Math.ceil(pulseInterval - diffMins);
-        console.warn(`Tiered Sniper cooldown. Next pulse in: ${remaining} mins.`);
+        console.warn(`[Sniper] Cooldown active. Next pulse in: ${remaining} mins.`);
         return { success: false, reason: 'cooldown', wait: remaining };
     }
 
@@ -189,7 +222,7 @@ export async function runScraper(settings: Settings, isDeepScrape = false, force
     // 5. Initialize Scrape Run Record
     let runId: string | null = null;
     try {
-        const { data: run, error: runError } = await (require('@/lib/supabase').supabase)
+        const { data: run, error: runError } = await adminSupabase
             .from('scrape_runs')
             .insert({
                 dealer_id: settings.id,
@@ -200,68 +233,88 @@ export async function runScraper(settings: Settings, isDeepScrape = false, force
             .select()
             .single();
 
-        if (!runError && run) runId = run.id;
-    } catch (err) {
+        if (runError) throw runError;
+        if (run) runId = run.id;
+
+        // Update last_pulse_at to reset cooldown
+        await adminSupabase
+            .from('settings')
+            .update({ last_pulse_at: now.toISOString() })
+            .eq('id', settings.id);
+
+    } catch (err: any) {
         console.error('[Sniper] Failed to log run start:', err);
     }
 
-    // Trigger the Pulse
+    // TRIGGER THE PULSE (ONE RUN FOR ALL CITIES)
+    const input = getApifyActorInput(settings, rotateCities, isDeepScrape);
+    
     (async () => {
-        let successCount = 0;
-        let errorCount = 0;
+        try {
+            const response = await fetch(`https://api.apify.com/v2/acts/fatihtahta~craigslist-scraper/runs?token=${APIFY_TOKEN}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(input)
+            });
 
-        for (let i = 0; i < rotateCities.length; i++) {
-            // Check for Abort Signal
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error(`[Batch Sniper] Apify Trigger Failed:`, JSON.stringify(data, null, 2));
+                throw new Error(data.error?.message || response.statusText);
+            }
+
             if (runId) {
-                const { data: currentRun } = await (require('@/lib/supabase').supabase)
+                await adminSupabase
                     .from('scrape_runs')
-                    .select('status')
-                    .eq('id', runId)
-                    .single();
-
-                if (currentRun?.status === 'Aborted') {
-                    console.log(`[Sniper] Run ${runId} aborted by user. Terminating loop.`);
-                    return;
-                }
+                    .update({
+                        finished_at: null,
+                        status: 'Success',
+                        error_message: null
+                    })
+                    .eq('id', runId);
             }
 
-            const city = rotateCities[i];
-            const citySettings = { ...settings, locations: [city] };
-
-            // Sniper Settings: catchment size based on user preference
-            const input = {
-                ...getApifyActorInput(citySettings, isDeepScrape),
-                maxItems: isDeepScrape ? 50 : (settings.max_items_per_city ?? 2)
-            };
-
-            try {
-                const response = await fetch(`https://api.apify.com/v2/acts/fatihtahta~craigslist-scraper/runs?token=${APIFY_TOKEN}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(input)
-                });
-                if (response.ok) successCount++;
-                else errorCount++;
-            } catch (err) {
-                console.error(`[Sniper] Failed to trigger ${city}:`, err);
-                errorCount++;
+            console.log(`[Batch Sniper] Run triggered successfully. ID: ${data.data?.id}`);
+            
+            // Background polling for cost (to stay within budget)
+            if (data.data?.id) {
+                (async () => {
+                    let costUpdated = false;
+                    for (let attempt = 0; attempt < 10; attempt++) {
+                        await new Promise(r => setTimeout(r, 60000)); // Poll every minute
+                        const costRes = await fetch(`https://api.apify.com/v2/actor-runs/${data.data.id || data.data.runId}?token=${APIFY_TOKEN}`);
+                        const costData = await costRes.json();
+                        
+                        if (costData.data?.status === 'SUCCEEDED' || costData.data?.status === 'FAILED') {
+                            const actualCost = costData.data.usageTotalUsd || costData.data.usageUsd || 0;
+                            console.log(`[Budget Tracking] Run ${data.data.id} finished. Cost: $${actualCost}`);
+                            
+                            // Atomically increment spent today
+                            const { data: latestSettings } = await adminSupabase.from('settings').select('budget_spent_today').eq('id', settings.id).single();
+                            await adminSupabase.from('settings').update({
+                                budget_spent_today: (latestSettings?.budget_spent_today || 0) + actualCost
+                            }).eq('id', settings.id);
+                            
+                            costUpdated = true;
+                            break;
+                        }
+                    }
+                    if (!costUpdated) console.warn(`[Budget Tracking] Could not finalize cost for run ${data.data.id} after 10 mins.`);
+                })();
             }
-
-            if (i < rotateCities.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 10000));
+        } catch (err: any) {
+            console.error(`[Batch Sniper] Critical trigger failure:`, err.message);
+            if (runId) {
+                await adminSupabase
+                    .from('scrape_runs')
+                    .update({
+                        finished_at: new Date().toISOString(),
+                        status: 'Error',
+                        error_message: err.message
+                    })
+                    .eq('id', runId);
             }
-        }
-
-        // Finalize Scrape Run Record
-        if (runId) {
-            await (require('@/lib/supabase').supabase)
-                .from('scrape_runs')
-                .update({
-                    finished_at: new Date().toISOString(),
-                    status: errorCount === 0 ? 'Success' : (successCount > 0 ? 'Partial' : 'Error'),
-                    error_message: errorCount > 0 ? `${errorCount} cities failed to trigger.` : null
-                })
-                .eq('id', runId);
         }
     })();
 

@@ -34,8 +34,36 @@ yarn-error.log*
 .env*
 
 # vercel
-.vercel
+# serverless
+.serverless/
+serverless.js
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.venv
+env/
+# Specific scraper env
+lambda-scraper-env/
+
+# logs
+*.log
+apify_run_logs.txt
+correct_apify_logs.txt
+diagnostic_log.txt
+migration_log.txt
+runs_log*.txt
+settings_check.txt
+vercel_logs.txt
+vercel_ls.txt
+build_output.txt
+lint_results.txt
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel

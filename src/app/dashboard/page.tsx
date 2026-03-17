@@ -10,24 +10,27 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { TOOLTIP_CONTENT } from '@/lib/tooltip-content';
 import { supabase } from '@/lib/supabase';
 import { Lead, Settings } from '@/types/database';
-import { Zap, TrendingUp, Play, Loader2, Clock, Car, MessageSquare, ExternalLink, Target, Settings as LucideIcon } from 'lucide-react';
+// @ts-ignore
+import { Zap, TrendingUp, Play, Loader2, Clock, Car, MessageSquare, ExternalLink, Target, Archive, Target as LucideIcon, Send, Maximize2, Minimize2, X } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function DashboardPage() {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [loading, setLoading] = useState(true);
     const [scanning, setScanning] = useState(false);
     const [autoPulse, setAutoPulse] = useState(false);
-    const [settingsId, setSettingsId] = useState(null as string | null);
-    const [scraperSettings, setScraperSettings] = useState(null as Settings | null);
+    const [settingsId, setSettingsId] = useState(null as any);
+    const [scraperSettings, setScraperSettings] = useState(null as any);
     const [error, setError] = useState(null as string | null);
     const [success, setSuccess] = useState(null as string | null);
     const [lastScan, setLastScan] = useState(null as string | null);
-    const [consecutiveEmpty, setConsecutiveEmpty] = useState<number>(0);
+    const [consecutiveEmpty, setConsecutiveEmpty] = useState(0);
 
-    // View & Filter State
-    const [activeTab, setActiveTab] = useState<'feed' | 'pipeline' | 'analyst'>('feed');
+    // View & Selection State
     const [searchQuery, setSearchQuery] = useState('');
-    const [minMargin, setMinMargin] = useState<number>(0);
+    const [selectedLeads, setSelectedLeads] = useState(new Set<string>() as Set<string>);
+    const [bulkUpdating, setBulkUpdating] = useState(false);
+    const [isTableMaximized, setIsTableMaximized] = useState(false);
 
     const fetchDashboardData = async () => {
         try {
@@ -51,7 +54,7 @@ export default function DashboardPage() {
                 setAutoPulse(settings.auto_scan_enabled);
                 setConsecutiveEmpty(settings.consecutive_empty_runs);
                 if (settings.last_scan_at) {
-                    setLastScan(new Date(settings.last_scan_at).toLocaleTimeString());
+                    setLastScan(formatDistanceToNow(new Date(settings.last_scan_at), { addSuffix: true }));
                 }
                 setScraperSettings(settings as Settings);
             }
@@ -87,6 +90,40 @@ export default function DashboardPage() {
         if (!error) setLeads((prev: Lead[]) => prev.filter(l => l.id !== id));
     };
 
+    const handleAction = async (id: string, action: string) => {
+        if (action === 'telegram') {
+            setSuccess('Blasting to Admin...');
+            setTimeout(() => setSuccess(null), 2000);
+        } else if (action === 'contact') {
+            // CRM Contact Logic
+        }
+    };
+
+    const toggleSelect = (id: string, selected: boolean) => {
+        const next = new Set(selectedLeads);
+        if (selected) next.add(id);
+        else next.delete(id);
+        setSelectedLeads(next);
+    };
+
+    const toggleSelectAll = (selected: boolean) => {
+        if (selected) setSelectedLeads(new Set(filteredLeads.map((l: Lead) => l.id)));
+        else setSelectedLeads(new Set());
+    };
+
+    const handleBulkStatusChange = async (status: Lead['status'] | 'Archived') => {
+        setBulkUpdating(true);
+        const ids = Array.from(selectedLeads);
+        const { error } = await supabase.from('leads').update({ status: status === 'Archived' ? 'Dead' : status }).in('id', ids);
+        if (!error) {
+            setLeads((prev: Lead[]) => prev.map(l => ids.includes(l.id) ? { ...l, status: (status === 'Archived' ? 'Dead' : status) as any } : l));
+            setSelectedLeads(new Set());
+            setSuccess(`Batch ${status === 'Archived' ? 'Purged' : 'Updated'}`);
+            setTimeout(() => setSuccess(null), 3000);
+        }
+        setBulkUpdating(false);
+    };
+
     useEffect(() => {
         fetchDashboardData();
         const channel = supabase
@@ -102,12 +139,27 @@ export default function DashboardPage() {
 
     const handleScan = async () => {
         setScanning(true);
+        setError(null);
         try {
-            await fetch('/api/scraper/run', { method: 'POST' });
+            const res = await fetch('/api/scraper/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ force: true })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                setError(data.error || 'Search failed');
+                setScanning(false);
+                return;
+            }
+
             setSuccess('Search initiated!');
             setTimeout(() => setSuccess(null), 5000);
-        } catch (err) { setError('Search failed'); }
-        // Keep scanning true for a bit to simulate progress or until user stops
+        } catch (err) {
+            setError('Search failed to connect');
+            setScanning(false);
+        }
     };
 
     const handleStopScan = async () => {
@@ -126,6 +178,11 @@ export default function DashboardPage() {
             return matchesSearch;
         });
     }, [leads, searchQuery]);
+
+    useEffect(() => {
+        console.log('[DEBUG Dashboard] Total leads from DB:', leads.length);
+        console.log('[DEBUG Dashboard] Filtered leads for table:', filteredLeads.length);
+    }, [leads.length, filteredLeads.length]);
 
     return (
         <div className="min-h-screen bg-[#020617] text-slate-50 relative overflow-hidden">
@@ -250,18 +307,100 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-8 mb-8 px-4">
-                    {['feed', 'pipeline', 'analyst'].map((tab) => (
-                        <button key={tab} onClick={() => setActiveTab(tab as any)} className={`pb-3 text-[10px] font-black uppercase tracking-[0.25em] transition-all relative ${activeTab === tab ? 'text-white' : 'text-slate-600 hover:text-slate-400'}`}>
-                            {tab}
-                            {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" />}
-                        </button>
-                    ))}
+                <div className={`mb-8 ${isTableMaximized ? 'fixed inset-0 z-[100] bg-[#020617] p-8 overflow-hidden flex flex-col' : ''}`}>
+                    <div className="flex items-center justify-between mb-6 px-4">
+                        <div className="flex items-center gap-4">
+                            <h2 className={`font-black text-white uppercase tracking-tighter italic ${isTableMaximized ? 'text-3xl' : 'text-xl'}`}>Tactical Listing</h2>
+                            <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-black px-3 py-1 rounded-full tracking-widest uppercase italic">
+                                {filteredLeads.length} Nodes Online
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            {isTableMaximized && (
+                                <div className="flex items-center gap-3 bg-slate-950/60 rounded-2xl border border-white/5 p-1 px-4 shadow-2xl mr-4">
+                                    <Target size={14} className="text-indigo-500" />
+                                    <input
+                                        type="text"
+                                        placeholder="SEARCH TACTICAL DATA..."
+                                        className="bg-transparent border-none py-2 text-[9px] font-black uppercase tracking-widest focus:ring-0 w-48 placeholder:text-slate-700 text-white"
+                                        value={searchQuery}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                            <button
+                                onClick={() => setIsTableMaximized(!isTableMaximized)}
+                                className="p-3 bg-slate-900 shadow-2xl border border-white/5 rounded-2xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2 group"
+                                title={isTableMaximized ? "Exit Fullscreen" : "Maximize Table"}
+                            >
+                                {isTableMaximized ? (
+                                    <>
+                                        <Minimize2 size={18} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest hidden group-hover:inline">Minimize</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Maximize2 size={18} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest hidden group-hover:inline">Maximize</span>
+                                    </>
+                                )}
+                            </button>
+                            {isTableMaximized && (
+                                <button
+                                    onClick={() => setIsTableMaximized(false)}
+                                    className="p-3 bg-red-600/10 text-red-500 shadow-2xl border border-red-500/10 rounded-2xl hover:bg-red-600 hover:text-white transition-all active:scale-95"
+                                >
+                                    <X size={18} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <LeadAnalysisTable
+                        leads={filteredLeads}
+                        onStatusChange={handleStatusChange}
+                        onDelete={handleDeleteLead}
+                        onAction={handleAction}
+                        selectedLeads={selectedLeads}
+                        onSelect={toggleSelect}
+                        onSelectAll={toggleSelectAll}
+                        maximized={isTableMaximized}
+                    />
                 </div>
 
-                {activeTab === 'feed' && <LeadList overrideLeads={filteredLeads} isLoading={loading} />}
-                {activeTab === 'pipeline' && <Pipeline leads={filteredLeads} onStatusChange={handleStatusChange} />}
-                {activeTab === 'analyst' && <LeadAnalysisTable leads={filteredLeads} onStatusChange={handleStatusChange} onDelete={handleDeleteLead} />}
+                {selectedLeads.size > 0 && (
+                    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 glass-card bg-[#020617]/95 text-white px-8 py-5 rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.9)] flex items-center gap-8 animate-in fade-in slide-in-from-bottom-8 duration-500 border border-white/10 ring-1 ring-indigo-500/30 backdrop-blur-xl">
+                        <div className="flex flex-col">
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] italic leading-none">{selectedLeads.size} Targets</p>
+                            <p className="text-[7px] font-black text-indigo-400 uppercase tracking-widest mt-1 opacity-60 italic">Locked in Batch</p>
+                        </div>
+                        <div className="h-8 w-px bg-white/10"></div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => handleBulkStatusChange('Contacted')}
+                                disabled={bulkUpdating}
+                                className="text-[9px] font-black uppercase tracking-widest bg-indigo-600 text-white px-6 py-3 rounded-2xl hover:bg-indigo-500 transition-all flex items-center gap-2 shadow-xl shadow-indigo-500/20 active:scale-95 border border-indigo-400/20 italic disabled:opacity-50"
+                            >
+                                <MessageSquare size={14} />
+                                Intercept
+                            </button>
+                            <button
+                                onClick={() => handleBulkStatusChange('Archived')}
+                                disabled={bulkUpdating}
+                                className="text-[9px] font-black uppercase tracking-widest bg-slate-900 text-slate-400 px-6 py-3 rounded-2xl hover:bg-slate-800 hover:text-white transition-all flex items-center gap-2 border border-white/5 active:scale-95 italic disabled:opacity-50"
+                            >
+                                <Archive size={14} />
+                                Purge
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => setSelectedLeads(new Set())}
+                            className="text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-white transition-all italic underline underline-offset-4"
+                        >
+                            Abort
+                        </button>
+                    </div>
+                )}
             </main>
         </div>
     );

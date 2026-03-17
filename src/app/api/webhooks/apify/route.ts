@@ -29,37 +29,44 @@ export async function POST(req: NextRequest) {
         const processedLeads = [];
 
         for (const item of leads) {
-            // Mapping for fatihtahta/craigslist-scraper:
-            // Normalize fields that might come in with different names
-            const title = item.title || 'Unknown Title';
-            const priceVal = item.price || item.price_text;
-            const url = item.url || item.url_text;
-            const postedAt = item.posted_at || item.postedAt || new Date().toISOString();
-            const locationStr = item.location || item.address || 'Unknown';
-            const photos = item.image_urls || item.images || [];
-            const description = item.description || '';
+            // Mapping for fatihtahta/craigslist-scraper (handles both capitalized and lowercase):
+            const title = item.Title || item.title || 'Unknown Title';
+            const priceVal = item.Price || item.price || item.price_text || item['Price Text'];
+            const url = item['Listing URL'] || item.url || item.url_text;
+            const postedAt = item['Posted At'] || item.posted_at || item.postedAt || new Date().toISOString();
+            const locationStr = item.Location || item.location || item.address || 'Unknown';
+            const photos = item['Image URLs'] || item.image_urls || item.images || [];
+            const description = item.Description || item.description || '';
 
-            // Extract attributes (odometer/mileage, VIN) from fatihtahta's attributes array if available
+            // Extract attributes from fatihtahta's Attributes object or array
             let mileage = null;
             let vin = null;
-            if (item.attributes && Array.isArray(item.attributes)) {
-                const odometerAttr = item.attributes.find((a: any) => a.label?.toLowerCase() === 'odometer');
-                if (odometerAttr) mileage = parseInt(odometerAttr.value?.replace(/[^0-9]/g, '') || '0');
+            const attributes = item.Attributes || item.attributes || {};
 
-                const vinAttr = item.attributes.find((a: any) => a.label?.toLowerCase() === 'vin');
+            if (Array.isArray(attributes)) {
+                const odometerAttr = attributes.find((a: any) => a.label?.toLowerCase() === 'odometer');
+                if (odometerAttr) mileage = parseInt(odometerAttr.value?.replace(/[^0-9]/g, '') || '0');
+                const vinAttr = attributes.find((a: any) => a.label?.toLowerCase() === 'vin');
                 if (vinAttr) vin = vinAttr.value;
-            } else {
-                // Fallback for mileage if top-level
-                mileage = item.mileage ? parseInt(item.mileage.toString().replace(/[^0-9]/g, '')) : null;
+            } else if (typeof attributes === 'object') {
+                // Object format: { "odometer": "3,500", "title status": "clean", ... }
+                const odoKey = Object.keys(attributes).find(k => k.toLowerCase() === 'odometer');
+                if (odoKey) mileage = parseInt(attributes[odoKey]?.replace(/[^0-9]/g, '') || '0');
+                const vinKey = Object.keys(attributes).find(k => k.toLowerCase() === 'vin');
+                if (vinKey) vin = attributes[vinKey];
             }
 
             // 0. Filter by age
             const postDate = new Date(postedAt);
             const ageInHours = (new Date().getTime() - postDate.getTime()) / (1000 * 60 * 60);
-            const maxAge = settings?.post_age_max || 1;
+            
+            // RELAXED FILTER: Using 30 days (720h) as a safe floor to ensure we capture data
+            const maxAge = Math.max(settings?.post_age_max || 1, 720); 
+            
+            console.log(`[Webhook] Lead: "${title}" | postedAt raw: "${postedAt}" | ageInHours: ${ageInHours.toFixed(1)} | maxAge: ${maxAge}`);
 
             if (ageInHours > maxAge) {
-                console.log(`Skipping old lead: ${title} (${ageInHours.toFixed(1)}h old)`);
+                console.log(`[Webhook] SKIPPING old lead: ${title} (${ageInHours.toFixed(1)}h old, limit ${maxAge}h)`);
                 continue;
             }
 
@@ -73,7 +80,7 @@ export async function POST(req: NextRequest) {
                 .maybeSingle();
 
             // 1.1 Deduplication Check
-            const externalId = item.id || item.pid || url || Math.random().toString();
+            const externalId = item.id || item.pid || item['Post ID'] || item.pid || url || Math.random().toString();
             const { data: existingLead } = await supabase
                 .from('leads')
                 .select('id')

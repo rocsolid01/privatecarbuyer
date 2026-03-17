@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Car, LayoutDashboard, Settings, LogOut, BarChart3, Bell } from 'lucide-react';
+import { Car, Zap, Clock, ArrowRight, Bell } from 'lucide-react';
 
 export const Navbar = () => {
     return (
@@ -18,9 +18,9 @@ export const Navbar = () => {
 
                         <div className="hidden sm:flex items-center gap-6">
                             {[
-                                { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                                { href: '/analytics', icon: BarChart3, label: 'Analytics' },
-                                { href: '/settings', icon: Settings, label: 'Settings' }
+                                { href: '/dashboard', icon: Zap, label: 'Dashboard' },
+                                { href: '/analytics', icon: Clock, label: 'Analytics' },
+                                { href: '/settings', icon: Zap, label: 'Settings' }
                             ].map((item) => (
                                 <Link
                                     key={item.href}
@@ -40,7 +40,7 @@ export const Navbar = () => {
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
                         </button>
                         <Link href="/login" className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-red-600 transition-colors">
-                            <LogOut size={18} />
+                            <ArrowRight size={18} />
                             <span className="hidden sm:inline">Sign Out</span>
                         </Link>
                     </div>

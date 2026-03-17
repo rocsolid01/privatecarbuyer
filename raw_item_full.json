@@ -1,0 +1,53 @@
+﻿[dotenv@17.3.1] injecting env (11) from .env -- tip: ΓÜÖ∩╕Å  override existing env vars with { override: true }
+Fetching details for Run: X2Ajh4bAF681vEQ5H
+Dataset ID: Z2WmwhudHnMKf38nL
+Found 5 sample items.
+Raw Item Structure: [
+  'Scraped At',  'Listing URL',
+  'Title',       'Price',
+  'Currency',    'Description',
+  'Location',    'Neighborhood',
+  'Map Address', 'Latitude',
+  'Longitude',   'Price Text',
+  'Category',    'Subcategory',
+  'Post ID',     'Posted At',
+  'Updated At',  'Attributes',
+  'Condition',   'Body',
+  'Image URLs'
+]
+Sample Item [0]: {
+  "Scraped At": "2026-03-11T08:33:29.594447+00:00",
+  "Listing URL": "https://orangecounty.craigslist.org/cto/d/yorba-linda-2021-high-edition-slingshot/7920371846.html",
+  "Title": "2021 High Edition Slingshot Spike",
+  "Price": "15999.00",
+  "Currency": "USD",
+  "Description": "Vehicle Core Information: 2021 Just 3000+ miles, High-end edition with original performance and comfortable configuration, bright green, bounce rate off the charts. garage parked, accident free, full maintenance records.\nWhy this car is worth: the market price is about $20000$, now it's $15999 great deal!, excellent condition, more than 3000 miles of a nearly new car, driving right at hand. bright green body, open seat. high quality version.\nPlayer who wants to experience the excitement of a three-wheeled sports car, young people on a limited budget but pursuing a personality.\nNo hidden issues, support for third party car inspection, local pick up only.",
+  "Location": "buena vista near richfield rd",
+  "Neighborhood": "Yorba Linda",
+  "Map Address": "buena vista near richfield rd",
+  "Latitude": "33.905800",
+  "Longitude": "-117.786500",
+  "Price Text": "$15,999",
+  "Category": "cars+trucks",
+  "Subcategory": "for sale by owner",
+  "Post ID": "7920371846",
+  "Posted At": "2026-03-10T12:19:35-0700",
+  "Updated At": "2026-03-10T12:19:35-0700",
+  "Attributes": {
+    "2021": "polaris slingshot",
+    "condition": "like new",
+    "cylinders": "4 cylinders",
+    "fuel": "gas",
+    "odometer": "3,500",
+    "title status": "clean",
+    "transmission": "automatic",
+    "type": "other"
+  },
+  "Condition": "like new",
+  "Body": "Vehicle Core Information: 2021 Just 3000+ miles, High-end edition with original performance and comfortable configuration, bright green, bounce rate off the charts. garage parked, accident free, full maintenance records.\nWhy this car is worth: the market price is about $20000$, now it's $15999 great deal!, excellent condition, more than 3000 miles of a nearly new car, driving right at hand. bright green body, open seat. high quality version.\nPlayer who wants to experience the excitement of a three-wheeled sports car, young people on a limited budget but pursuing a personality.\nNo hidden issues, support for third party car inspection, local pick up only.",
+  "Image URLs": [
+    "https://images.craigslist.org/00505_ldhY2PCvPVq_0gl0t2_600x450.jpg",
+    "https://images.craigslist.org/00S0S_31emNMxFRRv_0gl0t2_600x450.jpg",
+    "https://images.craigslist.org/00s0s_3KyFCgtesCg_0gl0t2_600x450.jpg"
+  ]
+}
