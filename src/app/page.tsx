@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Car, Zap, Target, ArrowRight } from 'lucide-react';
+import { Car, Zap, Target, ArrowRight, Smartphone, Globe } from 'lucide-react';
 
 export default function LandingPage() {
   return (
