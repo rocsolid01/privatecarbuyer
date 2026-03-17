@@ -99,14 +99,12 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     className="w-4 h-4 rounded border-white/10 bg-slate-900 checked:bg-indigo-500 transition-all cursor-pointer accent-indigo-500"
                                 />
                             </th>
-                            <th className="w-[22%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">Target Ident</th>
-                            <th className="w-[18%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">AI Intelligence</th>
-                            <SortHeader label="Year" sortKey="post_year" width="w-[6%]" />
-                            <SortHeader label="Price" sortKey="price" width="w-[8%]" />
-                            <SortHeader label="Mileage" sortKey="mileage" width="w-[8%]" />
-                            <SortHeader label="Status" sortKey="title_status" width="w-[6%]" />
+                            <th className="w-[26%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">Target Ident</th>
+                            <th className="w-[20%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">AI Intelligence</th>
+                            <SortHeader label="Year" sortKey="post_year" width="w-[8%]" />
+                            <SortHeader label="Mileage" sortKey="mileage" width="w-[10%]" />
+                            <SortHeader label="Status" sortKey="title_status" width="w-[8%]" />
                             <th className="w-[10%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">Posted</th>
-                            <SortHeader label="Margin" sortKey="ai_margin_est" align="center" width="w-[10%]" />
                             <SortHeader label="Protocol" sortKey="status" width="w-[10%]" />
                             <SortHeader label="Scrape Time" sortKey="created_at" width="w-[12%]" />
                             <th className="p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic text-right pr-8 w-[10%]">Intercept</th>
@@ -159,10 +157,6 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                 <td className="p-3 font-black text-slate-300 italic tracking-tighter">
                                     {lead.title.match(/\b(19|20)\d{2}\b/)?.[0] || '---'}
                                 </td>
-                                <td className="p-3 font-black text-white italic tracking-tighter">
-                                    <span className="text-slate-500 mr-0.5">$</span>
-                                    {lead.price?.toLocaleString()}
-                                </td>
                                 <td className="p-3 font-black text-slate-300 italic tracking-tighter">
                                     {lead.mileage?.toLocaleString()} <span className="text-[7px] text-slate-600">MI</span>
                                 </td>
@@ -179,12 +173,6 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     <div className="flex items-center gap-1.5 text-slate-500 font-black italic tracking-widest text-[8px] uppercase">
                                         <Calendar size={10} className="text-indigo-500" />
                                         <span>{formatDistanceToNow(new Date(lead.post_time))} ago</span>
-                                    </div>
-                                </td>
-                                <td className="p-3 text-center">
-                                    <div className="inline-flex items-center gap-1 text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10 glow-emerald font-black italic tracking-tighter">
-                                        <TrendingUp size={10} />
-                                        <span>${lead.ai_margin_est?.toLocaleString() || '---'}</span>
                                     </div>
                                 </td>
                                 <td className="p-3">

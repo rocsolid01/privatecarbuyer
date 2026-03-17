@@ -63,8 +63,8 @@ export const LeadList: React.FC<LeadListProps> = ({ overrideLeads, isLoading: ex
     };
 
     const handleExport = () => {
-        const csv = leads.map((l: Lead) => `${l.title},${l.price},${l.mileage},${l.location},${l.status}`).join('\n');
-        const blob = new Blob([`Title,Price,Mileage,Location,Status\n${csv}`], { type: 'text/csv' });
+        const csv = leads.map((l: Lead) => `${l.title},${l.mileage},${l.location},${l.status}`).join('\n');
+        const blob = new Blob([`Title,Mileage,Location,Status\n${csv}`], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

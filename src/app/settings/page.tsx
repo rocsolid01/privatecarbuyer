@@ -435,46 +435,6 @@ export default function SettingsPage() {
                         </div>
                     </section>
 
-                    {/* Rank 4: Price Band & AI Scoring */}
-                    <section className="glass-card p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
-                        <div className="flex items-center justify-between mb-12">
-                            <div className="flex items-center gap-5">
-                                <div className="flex items-center justify-center w-14 h-14 bg-emerald-500 rounded-[1.25rem] text-white font-black text-2xl italic shadow-2xl shadow-emerald-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">4</div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Monetary Guardrails</h2>
-                                        <InfoTooltip content={TOOLTIP_CONTENT.PRICE_LIMITS} />
-                                    </div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.25em] opacity-70">Targets 15-25% Under-market Opportunities</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
-                                    Capital Min ($)
-                                </label>
-                                <input type="number" value={settings.price_min} onChange={e => setSettings({ ...settings, price_min: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-6 font-black text-white text-lg focus:bg-slate-950 transition-all" />
-                            </div>
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
-                                    Capital Max ($)
-                                </label>
-                                <input type="number" value={settings.price_max} onChange={e => setSettings({ ...settings, price_max: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-6 font-black text-white text-lg focus:bg-slate-950 transition-all" />
-                            </div>
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
-                                    Risk Multiplier (AI)
-                                    <InfoTooltip content={TOOLTIP_CONTENT.SMS_SAFEGUARDS} />
-                                </label>
-                                <div className="flex items-center bg-slate-950/60 border border-white/5 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/50">
-                                    <input type="number" step="0.1" value={settings.recon_multiplier} onChange={e => setSettings({ ...settings, recon_multiplier: parseFloat(e.target.value) })} className="w-full bg-transparent border-none p-6 font-black text-center text-white text-lg" />
-                                    <span className="pr-8 text-[10px] font-black text-slate-700 uppercase tracking-widest italic">α-factor</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
                     {/* Rank 5: Radar & Location */}
                     <section className="glass-card p-10 rounded-[3rem] shadow-2xl group">
                         <div className="flex items-center gap-5 mb-12">

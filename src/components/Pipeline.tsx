@@ -56,24 +56,6 @@ export const Pipeline: React.FC<PipelineProps> = ({ leads, onStatusChange }: Pip
                                             </a>
                                         </div>
 
-                                        <div className="flex items-center justify-between mb-4">
-                                            {/* <div className="flex flex-col">
-                                                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Asking Price</span>
-                                                <span className="text-white font-black text-lg italic tracking-tighter">
-                                                    <span className="text-[10px] text-indigo-500 mr-0.5">$</span>
-                                                    {lead.price?.toLocaleString()}
-                                                </span>
-                                            </div> */}
-                                            {/* {lead.ai_margin_est && (
-                                                <div className="text-right">
-                                                    <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest italic mb-1">Profit Est.</span>
-                                                    <div className="text-emerald-500 font-black text-sm italic tracking-tighter flex items-center justify-end gap-1">
-                                                        <TrendingUp size={12} />
-                                                        +${Math.round(lead.ai_margin_est / 1000)}k
-                                                    </div>
-                                                </div>
-                                            )} */}
-                                        </div>
 
                                         <div className="flex items-center gap-2 mb-4 text-[9px] text-slate-500 font-black uppercase tracking-[0.1em] italic">
                                             <MapPin size={10} className="text-indigo-500" />

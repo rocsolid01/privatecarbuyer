@@ -18,7 +18,7 @@ provider:
   ecr:
     images:
       scraper-image-v1:
-        uri: 009398924547.dkr.ecr.us-east-1.amazonaws.com/pcb-scraper:latest
+        path: .
 
 # plugins:
 #   - serverless-lift

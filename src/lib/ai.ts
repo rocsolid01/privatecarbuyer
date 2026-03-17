@@ -51,7 +51,7 @@ export async function generateOutreachSMS(carTitle: string, price: number, locat
       Adopt the following Persona: ${persona}
       Generate a short, professional SMS for a car dealer contacting a private seller on Craigslist.
       Goal: ${goal}
-      Context: The dealer is interested in their ${carTitle} listed for $${price} in ${location}.
+      Context: The dealer is interested in their ${carTitle} in ${location}.
       Mention being a local buyer with cash ready.
       Keep it under 160 characters. No emojis. Include opt-out "Reply STOP".
     `;
@@ -72,15 +72,15 @@ export async function generateOutreachSMS(carTitle: string, price: number, locat
         return data.choices[0].message.content;
     } catch (error) {
         console.error('AI SMS Gen Error:', error);
-        return `Hi, I saw your ${carTitle} for $${price}. Local dealer, cash ready. What's your bottom dollar? Reply STOP to opt out.`;
+        return `Hi, I saw your ${carTitle}. Local dealer, cash ready. I'm interested in a quick buy. Reply STOP to opt out.`;
     }
 }
 export async function generateOutreachTelegram(carTitle: string, price: number, location: string) {
     try {
         const prompt = `
       Generate a short, catchy, and friendly Telegram message for a car dealer contacting a private seller from Craigslist.
-      The dealer is interested in their ${carTitle} ($${price}) in ${location}.
-      Goal: Mention being a local buyer with cash, ask for their bottom dollar, and suggest a quick meeting if possible.
+      The dealer is interested in their ${carTitle} in ${location}.
+      Goal: Mention being a local buyer with cash, ask if it's still available, and suggest a quick meeting if possible.
       Include a "🚗" emoji.
     `;
 
@@ -100,6 +100,6 @@ export async function generateOutreachTelegram(carTitle: string, price: number, 
         return data.choices[0].message.content;
     } catch (error) {
         console.error('AI Telegram Gen Error:', error);
-        return `Hi! 🚗 Saw your ${carTitle} ($${carTitle}) on Craigslist. I'm a local dealer interested in a cash buy today. What's your bottom dollar?`;
+        return `Hi! 🚗 Saw your ${carTitle} on Craigslist. I'm a local dealer interested in a cash buy today. Still available?`;
     }
 }

@@ -60,10 +60,7 @@ export const NotificationCenter = () => {
                     <p className="text-xs text-slate-500 line-clamp-2 mb-3">
                         {lead.title}
                     </p>
-                    <div className="flex items-center justify-between">
-                        <span className="text-emerald-600 font-bold text-sm">
-                            Est. ${lead.ai_margin_est?.toLocaleString()} Margin
-                        </span>
+                    <div className="flex items-center justify-end">
                         <Link
                             href={`/leads/${lead.id}`}
                             className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 p-1.5 rounded-lg hover:scale-110 transition-transform"
