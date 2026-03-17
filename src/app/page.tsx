@@ -142,7 +142,7 @@ export default function LandingPage() {
             <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-xl mx-auto">
               Join 500+ dealerships using AI to secure high-margin private party inventory before it hits the retail market.
             </p>
-            <Link href="/dashboard" className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl font-black text-xl shadow-2xl shadow-blue-500/40 transition-all hover:scale-105 inline-block">
+            <Link href="/settings" className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl font-black text-xl shadow-2xl shadow-blue-500/40 transition-all hover:scale-105 inline-block">
               Get Started for Free
             </Link>
           </div>
