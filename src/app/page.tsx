@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Car, Zap, Target, ArrowRight, Smartphone, Globe } from 'lucide-react';
+import { Car, Zap, Target, ArrowRight, Phone, Monitor } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -64,7 +64,7 @@ export default function LandingPage() {
                   <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none" />
                   <div className="text-center relative z-10">
                     <div className="mb-6 inline-block bg-indigo-500/20 p-6 rounded-full">
-                      <Smartphone size={64} className="text-indigo-400" />
+                      <Phone size={64} className="text-indigo-400" />
                     </div>
                     <div>LIVE SNIPER FEED ACTIVE</div>
                   </div>
@@ -105,7 +105,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 group hover:border-blue-500 transition-all duration-500">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-8 group-hover:scale-110 transition-transform">
-                <Globe size={32} />
+                <Monitor size={32} />
               </div>
               <h4 className="text-2xl font-black dark:text-white mb-4">Hyper-Scraper 4.0</h4>
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -123,7 +123,7 @@ export default function LandingPage() {
             </div>
             <div className="p-8 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 group hover:border-purple-500 transition-all duration-500">
               <div className="w-16 h-16 bg-purple-100 dark:bg-purple-600/20 rounded-2xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-8 group-hover:scale-110 transition-transform">
-                <Smartphone size={32} />
+                <Phone size={32} />
               </div>
               <h4 className="text-2xl font-black dark:text-white mb-4">Automated Outreach</h4>
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
