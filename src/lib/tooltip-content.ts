@@ -4,19 +4,6 @@
  */
 
 export const TOOLTIP_CONTENT = {
-    // Analytics Stats
-    TOTAL_PULSES: "The total number of times the sniper engine has deployed a search across all targeted regions. Each pulse represents a full cycle of scanning.",
-    LEADS_INGESTED: "The raw count of unique vehicle listings discovered and imported into your database after AI filtering.",
-    AVG_YIELD: "The efficiency of your search patterns. It calculates how many high-quality leads are found per pulse on average.",
-    CLOSE_RATE: "The percentage of ingested leads that eventually move into the 'Bought' stage of your pipeline.",
-
-    // Scrape History Table
-    TEMPORAL_NODE: "The precise timestamp when the sniper pulse was initiated by the system or triggered manually.",
-    STRATEGY_MODE: "HOT ZONE focuses on your primary sales radius. FAR SWEEP extends the search to outer domains for rare candidates.",
-    TARGET_RADAR: "The specific geographical domains (cities) that were scanned during this particular pulse.",
-    YIELD_STAT: "The number of unique vehicle candidates successfully extracted and verified during this run.",
-    PULSE_STATUS: "The operational health of the run. 'Success' indicates full coverage, while 'Partial' or 'Failed' suggests connectivity issues.",
-
     // Settings - Asset Intelligence
     ASSET_BRANDS: "Focuses the sniper engine on specific high-turnover manufacturers. This ensures the inventory matches your dealership's specialty.",
 
@@ -41,5 +28,11 @@ export const TOOLTIP_CONTENT = {
     // Dashboard & Lead Card
     LEAD_SCORE: "A proprietary rating (1-10) based on margin potential, mileage risk, and historical market demand for this specific VIN.",
     AI_NOTES: "Summarized insights from the AI analyst highlighting why this car is a 'Snipe' or documenting potential red flags.",
-    STATUS_FLOW: "The current stage of this lead in your acquisition pipeline, from initial discovery to final possession."
+    STATUS_FLOW: "The current stage of this lead in your acquisition pipeline, from initial discovery to final possession.",
+    
+    // Analytics
+    TOTAL_PULSES: "The number of times the sniper engine has activated in the current tracking period.",
+    LEADS_INGESTED: "The total volume of raw car listings discovered and stored in the database.",
+    AVG_YIELD: "The average number of car listings found per engine pulse. Higher yield indicates higher market activity.",
+    CLOSE_RATE: "The percentage of discovered leads that successfully reached 'Bought' status."
 };
