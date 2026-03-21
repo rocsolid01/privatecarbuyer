@@ -29,7 +29,7 @@ export const Navbar = () => {
                                     <item.icon size={16} className="group-hover:scale-110 transition-transform" />
                                     {item.label}
                                 </Link>
-                            ))}
+                        ))}
                         </div>
                     </div>
 
@@ -42,8 +42,8 @@ export const Navbar = () => {
                             <ArrowRight size={18} />
                             <span className="hidden sm:inline">Sign Out</span>
                         </Link>
-                    </div>
                 </div>
+            </div>
             </div>
         </nav>
     );
