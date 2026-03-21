@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { ScrapeHistoryTable } from '@/components/ScrapeHistoryTable';
+import { LeadAnalysisTable } from '@/components/LeadAnalysisTable';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { TOOLTIP_CONTENT } from '@/lib/tooltip-content';
 import { Zap, ArrowRight, Clock, ExternalLink, MessageSquare, MapPin, Target } from 'lucide-react';
@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
         {
             label: 'Close Rate',
             tooltip: TOOLTIP_CONTENT.CLOSE_RATE,
-            value: ((leads.filter((l: any) => l.status === 'Bought').length / (leads.length || 1)) * 100).toFixed(1) + '%',
+            value: ((leads.filter((l: Lead) => l.status === 'Bought').length / (leads.length || 1)) * 100).toFixed(1) + '%',
             change: '0%',
             positive: true,
             icon: MessageSquare,
@@ -100,7 +100,7 @@ export default function AnalyticsPage() {
                                 <div className={`flex items-center gap-1 text-[10px] font-black italic ${stat.positive ? 'text-emerald-500' : 'text-red-500'}`}>
                                     <ArrowRight size={14} className={stat.positive ? "" : "rotate-90"} />
                                     {stat.change}
-                                </div>
+                                </Fdiv>
                             </div>
                             <div className="flex items-center gap-2 mb-2 leading-none">
                                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">{stat.label}</h3>
@@ -120,13 +120,23 @@ export default function AnalyticsPage() {
                     <div className="flex items-center justify-between px-4">
                         <div className="flex items-center gap-4">
                             <Clock className="text-indigo-500" size={24} />
-                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Strategic Pulse History</h2>
+                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Tactical Listing</h2>
                         </div>
                         <div className="flex items-center gap-5">
                             <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Retention: 30 Days</p>
                         </div>
                     </div>
-                    <ScrapeHistoryTable runs={runs} />
+                    <LeadAnalysisTable
+                        leads={leads}
+                        onStatusChange={async (id: string, status: Lead['status']) => {
+                            const { error } = await supabase.from('leads').update({ status }).eq('id', id);
+                            if (!error) setLeads(leads.map((l: Lead) => l.id === id ? { ...l, status } : l));
+                        }}
+                        onDelete={async (id: string) => {
+                            const { error } = await supabase.from('leads').delete().eq('id', id);
+                            if (!error) setLeads(leads.filter((l: Lead) => l.id !== id));
+                        }}
+                    />
                 </div>
 
                 {/* Bottom Insight */}
@@ -135,22 +145,21 @@ export default function AnalyticsPage() {
                     <div className="glass-card relative bg-slate-950 p-1 rounded-[3rem] border border-white/5">
                         <div className="bg-slate-900/40 p-10 rounded-[2.8rem] flex flex-col lg:flex-row items-center justify-between gap-12">
                             <div className="flex items-center gap-8">
-                                <div className="w-24 h-24 bg-indigo-600/10 rounded-[2.3rem] flex items-center justify-center text-indigo-500 border border-indigo-500/20 relative overflow-hidden">
+                                <div className="w-24 h-24 bg-indigo-600/10 rounded-[2.3rem] flex items-center justify-center text-indigo-500 border border-indigo-500/20 relative overflow-hidden" >
                                     <Zap size={48} className="animate-pulse relative z-10" />
                                     <div className="absolute inset-0 bg-indigo-500/5 animate-pulse" />
                                 </div>
                                 <div>
-                                    <h4 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">Target Node Optimization</h4>
+                                    <h4 className="text-2xl font-black italic uppercase tracking-tighter text-white">Target Node Optimization</h4>
                                     <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-md">Your current strategy in <strong>Phoenix/Scottsdale</strong> yields 4x more High-Margin candidates than coastal zones. Consider re-allocating sniper resources.</p>
                                 </div>
                             </div>
                             <button className="w-full lg:w-auto px-12 py-5 bg-white text-slate-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] italic hover:scale-105 active:scale-95 transition-all shadow-2xl">
                                 Scale Radar Coverage
                             </button>
-                        </div>
                     </div>
                 </div>
             </main>
         </div>
     );
-}
+            }
