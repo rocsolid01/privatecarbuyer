@@ -1,24 +1,23 @@
 # org: minhdo714
 service: pcb-scraper
 
-
 provider:
   name: aws
-  region: us-east-1          # Change to region closest to your scrape targets (us-west-2 for CA/AZ)
+  region: us-east-1      # Change to region closest to your scrape targets (us-west-2 for CA/AZ)
   architecture: x86_64
-  memorySize: 2048            # Chromium needs at least 1.5GB; 2GB gives headroom
-  timeout: 300                # 5-minute max per run
+  memorySize: 2048       # Chromium needs at least 1.5GB; 2GB gives headroom
+  timeout: 300           # 5-minute max per run
   profile: pcb-scraper
 
-  environment:
-    PROXY_URL: ${env:PROXY_URL}                    # DataImpulse: http://user:pass@gw.dataimpulse.com:823
-    SUPABASE_URL: ${env:SUPABASE_URL}
-    SUPABASE_KEY: ${env:SUPABASE_SERVICE_KEY}       # Use service role key (bypasses RLS for upserts)
+environment:
+  PROXY_URL: ${env:PROXY_URL}           # DataImpulse: http://user:pass@gw.dataimpulse.com:823
+  SUPABASE_URL: ${env:SUPABASE_URL}
+  SUPABASE_KEY: ${env:SUPABASE_SERVICE_KEY}  # Use service role key (bypasses RLS for upserts)
 
-  ecr:
-    images:
-      scraper-image-v1:
-        path: .
+ecr:
+  images:
+    scraper-image-v8:
+      path: .
 
 # plugins:
 #   - serverless-lift
@@ -26,27 +25,8 @@ provider:
 functions:
   scrape:
     image:
-      name: scraper-image-v1
+      name: scraper-image-v8
     events:
       - http:
           path: scrape
           method: post
-          cors:
-            origin: "*"        # Restrict to your Vercel domain in production
-            headers:
-              - Content-Type
-              - X-Scraper-Secret
-          private: false
-
-# ─────────────────────────────────────────────────────────────────────────────
-# DEPLOYMENT STEPS (run from lambda-scraper/ directory):
-#
-# 1. Install Serverless:   npm install -g serverless
-# 2. Configure AWS creds:  serverless config credentials --provider aws --key KEY --secret SECRET
-# 3. Set env vars in shell:
-#      export PROXY_URL="http://user:pass@gate.dc.dataimpulse.com:823"
-#      export SUPABASE_URL="https://xxxx.supabase.co"
-#      export SUPABASE_SERVICE_KEY="eyJ..."
-# 4. Deploy:               serverless deploy
-# 5. Copy the API Gateway URL into your Vercel .env as LAMBDA_SCRAPER_URL
-# ─────────────────────────────────────────────────────────────────────────────
