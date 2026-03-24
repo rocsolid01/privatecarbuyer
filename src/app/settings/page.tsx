@@ -601,19 +601,35 @@ export default function SettingsPage() {
                                     <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">30-Minute Cycle Enabled</span>
                                 </div>
                             </div>
-                            <div className="w-48 space-y-3">
-                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] block text-center">BATCH SIZE</label>
-                                <input
-                                    type="number"
-                                    min={5}
-                                    max={200}
-                                    value={(!settings.max_items_per_city || isNaN(settings.max_items_per_city)) ? 25 : settings.max_items_per_city}
-                                    onChange={e => {
-                                        const parsed = parseInt(e.target.value);
-                                        setSettings({ ...settings, max_items_per_city: isNaN(parsed) ? 25 : parsed } as any);
-                                    }}
-                                    className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
-                                />
+                            <div className="flex gap-10">
+                                <div className="w-48 space-y-3">
+                                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] block text-center">BATCH SIZE</label>
+                                    <input
+                                        type="number"
+                                        min={5}
+                                        max={200}
+                                        value={(!settings.max_items_per_city || isNaN(settings.max_items_per_city)) ? 25 : settings.max_items_per_city}
+                                        onChange={e => {
+                                            const parsed = parseInt(e.target.value);
+                                            setSettings({ ...settings, max_items_per_city: isNaN(parsed) ? 25 : parsed } as any);
+                                        }}
+                                        className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
+                                    />
+                                </div>
+                                <div className="w-48 space-y-3">
+                                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] block text-center">CITY DELAY (S)</label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={300}
+                                        value={(!settings.pulse_interval || isNaN(settings.pulse_interval)) ? 15 : settings.pulse_interval}
+                                        onChange={e => {
+                                            const parsed = parseInt(e.target.value);
+                                            setSettings({ ...settings, pulse_interval: isNaN(parsed) ? 15 : parsed } as any);
+                                        }}
+                                        className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </section>
