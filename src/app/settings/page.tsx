@@ -367,11 +367,11 @@ export default function SettingsPage() {
                             <Target size={14} className="fill-current" />
                             ENGINE CORE V2.0
                         </div>
-                        <h1 className="text-6xl font-black text-white uppercase tracking-tighter italic leading-none">
+                        <h1 className="text-6xl font-bold text-white uppercase tracking-tighter leading-none">
                             Control <span className="text-indigo-500">Center</span>
                         </h1>
                         {/* Control Center Panel */}
-                        <p className="text-slate-500 font-black uppercase tracking-[0.2em] text-xs mt-2 ml-1 opacity-70">Strategic Sniper Configuration • Global System Toggling</p>
+                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs mt-2 ml-1 opacity-70">Strategic Sniper Configuration • Global System Toggling</p>
                         
                         {/* Scan Controls Panel */}
                         <div className="mt-6 flex flex-wrap items-center gap-4">
@@ -380,7 +380,7 @@ export default function SettingsPage() {
                                     <Timer size={20} className="text-emerald-400" />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="font-black uppercase tracking-widest text-xs italic text-white">
+                                    <span className="font-semibold uppercase tracking-widest text-xs text-white">
                                         30-Min Auto Scan
                                     </span>
                                     <span className="font-bold uppercase tracking-[0.2em] text-[10px] text-slate-400 mt-0.5 flex items-center gap-1.5">
@@ -390,7 +390,7 @@ export default function SettingsPage() {
                                 </div>
                                 <button
                                     onClick={() => setSettings({ ...settings, auto_scan_enabled: !settings.auto_scan_enabled })}
-                                    className={`ml-6 flex items-center gap-2 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs transition-all transform active:scale-95 ${
+                                    className={`ml-6 flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold uppercase tracking-widest text-xs transition-all transform active:scale-95 ${
                                         settings.auto_scan_enabled 
                                             ? 'bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
                                             : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
@@ -422,7 +422,7 @@ export default function SettingsPage() {
                             ) : (
                                 <button
                                     onClick={handleScan}
-                                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-[2rem] font-black flex items-center gap-3 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 uppercase tracking-[0.2em] text-xs border border-indigo-400/20"
+                                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-[2rem] font-bold flex items-center gap-3 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 uppercase tracking-[0.2em] text-xs border border-indigo-400/20"
                                     title="Forces an immediate scan for new listings"
                                 >
                                     <Play size={14} className="fill-current" />
@@ -435,13 +435,13 @@ export default function SettingsPage() {
                     <div className="flex flex-wrap items-center gap-4">
                         <button
                             onClick={resetToOptimalDefaults}
-                            className="px-6 py-2.5 rounded-xl font-black text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-xs border border-white/5 bg-white/5 hover:bg-white/10"
+                            className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-xs border border-white/5 bg-white/5 hover:bg-white/10"
                         >
                             Reset Logic
                         </button>
                         <button
                             onClick={fetchSettings}
-                            className="px-6 py-2.5 rounded-xl font-black text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-xs border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
+                            className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-xs border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
                         >
                             <Clock size={12} />
                             Load Config
@@ -449,7 +449,7 @@ export default function SettingsPage() {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="px-6 py-2.5 rounded-xl font-black text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-xs border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
+                            className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-xs border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
                         >
                             <Save size={12} />
                             {saving ? 'Syncing...' : 'Save Changes'}
@@ -465,18 +465,18 @@ export default function SettingsPage() {
                             <Target size={100} className="text-indigo-500" />
                         </div>
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="flex items-center justify-center w-10 h-10 bg-indigo-600 rounded-xl text-white font-black text-xl italic shadow-lg shadow-indigo-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">1</div>
+                            <div className="flex items-center justify-center w-10 h-10 bg-indigo-600 rounded-xl text-white font-bold text-xl italic shadow-lg shadow-indigo-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">1</div>
                             <div>
                                 <div className="flex items-center gap-3">
-                                    <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tighter italic">Tactical Listing</h2>
+                                    <h2 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tighter">Tactical Listing</h2>
                                     <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
                                         <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping" />
-                                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest italic">
+                                        <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest italic">
                                             Live Intel: {lastUpdated.toLocaleTimeString()}
                                         </span>
                                     </div>
                                 </div>
-                                <p className="text-xs text-slate-400 font-black uppercase tracking-[0.2em] opacity-70">Primary Filter: Controls fast-turn inventory flow</p>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em] opacity-70">Primary Filter: Controls fast-turn inventory flow</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -488,7 +488,7 @@ export default function SettingsPage() {
                                 <textarea
                                     value={settings.makes.join(', ')}
                                     onChange={(e) => setSettings({ ...settings, makes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                                    className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500/50 text-white font-black uppercase tracking-widest text-xs placeholder:text-slate-800 focus:bg-slate-950 transition-all leading-snug"
+                                    className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500/50 text-white font-medium uppercase tracking-widest text-xs placeholder:text-slate-800 focus:bg-slate-950 transition-all leading-snug"
                                     rows={3}
                                     placeholder="Honda, Toyota, Lexus..."
                                 />
@@ -501,7 +501,7 @@ export default function SettingsPage() {
                                 <textarea
                                     value={(settings as any).priority_models?.join(', ') || ''}
                                     onChange={(e) => setSettings({ ...settings, priority_models: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } as any)}
-                                    className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500/50 text-white font-black uppercase tracking-widest text-xs placeholder:text-slate-800 focus:bg-slate-950 transition-all leading-snug"
+                                    className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500/50 text-white font-medium uppercase tracking-widest text-xs placeholder:text-slate-800 focus:bg-slate-950 transition-all leading-snug"
                                     rows={3}
                                     placeholder="Civic, Camry, F-150..."
                                 />
@@ -514,13 +514,13 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">2</div>
+                                    <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl text-indigo-400 font-bold italic border border-white/10 group-hover:scale-110 transition-transform">2</div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">Vintage Range</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase tracking-tighter">Vintage Range</h3>
                                             <InfoTooltip content={TOOLTIP_CONTENT.YEAR_THRESHOLD} />
                                         </div>
-                                        <p className="text-xs text-slate-500 font-black uppercase tracking-[0.2em] opacity-70">Reduces recon exposure</p>
+                                        <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] opacity-70">Reduces recon exposure</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -535,10 +535,10 @@ export default function SettingsPage() {
                                 </div>
                                 <div className="space-y-2 pt-4 border-t border-white/5">
                                     <div className="flex items-center gap-2">
-                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">MAX POST AGE (HOURS)</p>
+                                        <p className="text-[8px] font-bold text-slate-600 uppercase tracking-[0.2em]">MAX POST AGE (HOURS)</p>
                                         <InfoTooltip content="Only scrape listings newer than this many hours." />
                                     </div>
-                                    <input type="number" value={settings.post_age_max || 24} onChange={e => setSettings({ ...settings, post_age_max: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-xl p-3 md:p-4 font-black text-white text-sm focus:bg-slate-950 transition-all px-6" />
+                                    <input type="number" value={settings.post_age_max || 24} onChange={e => setSettings({ ...settings, post_age_max: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-xl p-3 md:p-4 font-bold text-white text-sm focus:bg-slate-950 transition-all px-6" />
                                 </div>
                                 <div className="flex items-center justify-between p-4 bg-slate-950/40 border border-white/5 rounded-xl group/toggle cursor-pointer hover:bg-slate-950/60 transition-all mt-4" onClick={() => setSettings({ ...settings, exclude_salvage: !settings.exclude_salvage })}>
                                     <div className="flex items-center gap-3">
@@ -546,7 +546,7 @@ export default function SettingsPage() {
                                             <Zap size={14} className={settings.exclude_salvage ? 'fill-indigo-400' : ''} />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-black text-white uppercase tracking-widest italic leading-none">Exclude Salvage</p>
+                                            <p className="text-xs font-semibold text-white uppercase tracking-widest leading-none">Exclude Salvage</p>
                                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1 opacity-60">Filtered At Source</p>
                                         </div>
                                     </div>
@@ -558,13 +558,13 @@ export default function SettingsPage() {
 
                             <div className="space-y-6 border-l border-white/5 pl-4 md:pl-8">
                                 <div className="flex items-center gap-4">
-                                    <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">3</div>
+                                    <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl text-indigo-400 font-bold italic border border-white/10 group-hover:scale-110 transition-transform">3</div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">Odometer Limit</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase tracking-tighter">Odometer Limit</h3>
                                             <InfoTooltip content={TOOLTIP_CONTENT.MILEAGE_CAP} />
                                         </div>
-                                        <p className="text-xs text-slate-500 font-black uppercase tracking-[0.2em] opacity-70">Preserves flip velocity</p>
+                                        <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] opacity-70">Preserves flip velocity</p>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -581,18 +581,18 @@ export default function SettingsPage() {
                             <Zap size={140} className="text-indigo-500" />
                         </div>
                         <div className="flex items-center gap-5 mb-8">
-                            <div className="flex items-center justify-center w-14 h-14 bg-indigo-600 rounded-[1.25rem] text-white font-black text-2xl italic shadow-2xl shadow-indigo-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">4</div>
+                            <div className="flex items-center justify-center w-14 h-14 bg-indigo-600 rounded-[1.25rem] text-white font-bold text-2xl italic shadow-2xl shadow-indigo-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">4</div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Control Speed</h2>
+                                    <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">Control Speed</h2>
                                     <InfoTooltip content="Scraped leads per 30-min session. Higher = More results/More cost." />
                                 </div>
-                                <p className="text-xs text-slate-400 font-black uppercase tracking-[0.25em] opacity-70">Listings Per Session: Calibrates ingestion velocity</p>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.25em] opacity-70">Listings Per Session: Calibrates ingestion velocity</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-10">
                             <div className="flex-1 space-y-4">
-                                <p className="text-xs text-slate-500 font-black uppercase tracking-[0.2em] leading-relaxed">
+                                <p className="text-xs text-slate-500 font-semibold uppercase tracking-[0.2em] leading-relaxed">
                                     Adjust the number of car listings scraped during each automated 30-minute pulse. Higher values increase the probability of finding gems but consume more budget.
                                 </p>
                                 <div className="flex items-center gap-4 bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10">
@@ -636,13 +636,13 @@ export default function SettingsPage() {
                     {/* Rank 5: Radar & Location */}
                     <section className="glass-card p-6 md:p-8 rounded-3xl shadow-xl group">
                         <div className="flex items-center gap-5 mb-8">
-                            <div className="flex items-center justify-center w-14 h-14 bg-indigo-500 rounded-[1.25rem] text-white font-black text-2xl italic shadow-2xl shadow-indigo-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">5</div>
+                            <div className="flex items-center justify-center w-14 h-14 bg-indigo-500 rounded-[1.25rem] text-white font-bold text-2xl italic shadow-2xl shadow-indigo-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">5</div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Geographic Radar</h2>
+                                    <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">Geographic Radar</h2>
                                     <InfoTooltip content={TOOLTIP_CONTENT.SEARCH_RADIUS} />
                                 </div>
-                                <p className="text-xs text-slate-400 font-black uppercase tracking-[0.25em] opacity-70">Controls global logistics and transport overhead</p>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.25em] opacity-70">Controls global logistics and transport overhead</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -662,11 +662,11 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <p className="text-xs font-black text-slate-600 uppercase tracking-[0.3em]">BLACKLISTED TERMS (EXCLUDE)</p>
+                                    <p className="text-xs font-bold text-slate-600 uppercase tracking-[0.3em]">BLACKLISTED TERMS (EXCLUDE)</p>
                                     <textarea
                                         value={settings.condition_exclude.join(', ')}
                                         onChange={(e) => setSettings({ ...settings, condition_exclude: e.target.value.split(',').map(s => s.trim()) })}
-                                        className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-red-500/40 text-white font-black uppercase text-xs tracking-[0.15em] focus:bg-slate-950 transition-all leading-loose h-32"
+                                        className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-red-500/40 text-white font-medium uppercase text-xs tracking-[0.15em] focus:bg-slate-950 transition-all leading-loose h-32"
                                         placeholder="rebuilt, salvaged, flood..."
                                     />
                                 </div>
@@ -680,11 +680,11 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <p className="text-xs font-black text-slate-600 uppercase tracking-[0.3em]">CRITICAL SIGNALS (BOOST)</p>
+                                    <p className="text-xs font-bold text-slate-600 uppercase tracking-[0.3em]">CRITICAL SIGNALS (BOOST)</p>
                                     <textarea
                                         value={settings.motivation_keywords.join(', ')}
                                         onChange={(e) => setSettings({ ...settings, motivation_keywords: e.target.value.split(',').map(s => s.trim()) })}
-                                        className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-emerald-500/40 text-white font-black uppercase text-xs tracking-[0.15em] focus:bg-slate-950 transition-all leading-loose h-32"
+                                        className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-emerald-500/40 text-white font-medium uppercase text-xs tracking-[0.15em] focus:bg-slate-950 transition-all leading-loose h-32"
                                         placeholder="must sell, moving, cash only..."
                                     />
                                 </div>

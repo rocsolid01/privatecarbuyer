@@ -92,11 +92,11 @@ export default function AnalyticsPage() {
                     <div className="space-y-2">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-8 bg-indigo-600 rounded-full" />
-                            <h1 className="text-4xl font-black italic uppercase tracking-tighter text-white">
+                            <h1 className="text-4xl font-bold uppercase tracking-tighter text-white">
                                 Strategic <span className="text-indigo-500">Intelligence</span>
                             </h1>
                         </div>
-                        <p className="text-slate-500 font-black uppercase text-xs tracking-[0.2em] italic ml-5">
+                        <p className="text-slate-500 font-bold uppercase text-xs tracking-[0.2em] ml-5">
                             Engine Performance Metrics & ROI
                         </p>
                     </div>
@@ -120,11 +120,11 @@ export default function AnalyticsPage() {
                             </div>
                             
                             <div className="flex items-center gap-2 mb-1 leading-none">
-                                <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest italic">{stat.label}</h3>
+                                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest">{stat.label}</h3>
                                 <InfoTooltip content={stat.tooltip} />
                             </div>
                             
-                            <p className="text-4xl font-black italic tracking-tighter text-white">{stat.value}</p>
+                            <p className="text-4xl font-bold tracking-tighter text-white">{stat.value}</p>
                             
                             <div className="absolute -bottom-6 -right-6 opacity-[0.03] text-white">
                                 <stat.icon size={120} />
@@ -138,7 +138,7 @@ export default function AnalyticsPage() {
                     <div className="flex items-center justify-between px-4">
                         <div className="flex items-center gap-4">
                             <Target className="text-indigo-500" size={24} />
-                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">
+                            <h2 className="text-xl font-bold uppercase tracking-tighter text-white">
                                 Tactical Listing
                             </h2>
                         </div>
@@ -168,7 +168,7 @@ export default function AnalyticsPage() {
                                     <div className="absolute inset-0 bg-indigo-500/5 animate-pulse" />
                                 </div>
                                 <div>
-                                    <h4 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">
+                                    <h4 className="text-2xl font-bold uppercase tracking-tighter text-white mb-2">
                                         Target Node Optimization
                                     </h4>
                                     <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-md">
@@ -177,7 +177,7 @@ export default function AnalyticsPage() {
                                 </div>
                             </div>
                             
-                            <button className="w-full lg:w-auto px-12 py-5 bg-white text-slate-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] italic hover:scale-105 active:scale-95 transition-all shadow-2xl">
+                            <button className="w-full lg:w-auto px-12 py-5 bg-white text-slate-950 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-2xl">
                                 Scale Radar Coverage
                             </button>
                         </div>
