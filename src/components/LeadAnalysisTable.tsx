@@ -43,7 +43,7 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
     onSelectAll,
     maximized = false
 }: LeadAnalysisTableProps) => {
-    const [sortConfig, setSortConfig] = useState({ key: 'ai_margin_est', direction: 'desc' } as any);
+    const [sortConfig, setSortConfig] = useState({ key: 'post_time', direction: 'desc' } as any);
 
     const sortedLeads = [...leads].sort((a: any, b: any) => {
         let aVal: any = a[sortConfig.key as keyof Lead];
@@ -102,6 +102,7 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                             <th className="w-[26%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">Target Ident</th>
                             <th className="w-[20%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">AI Intelligence</th>
                             <SortHeader label="Year" sortKey="post_year" width="w-[8%]" />
+                            <SortHeader label="City" sortKey="city" width="w-[8%]" />
                             <SortHeader label="Mileage" sortKey="mileage" width="w-[10%]" />
                             <SortHeader label="Status" sortKey="title_status" width="w-[8%]" />
                             <th className="w-[10%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">Posted</th>
@@ -148,6 +149,20 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     </div>
                                 </td>
                                 <td className="p-3">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-md">
+                                            <TrendingUp size={10} className="text-indigo-400" />
+                                            <span className="text-[9px] font-black text-indigo-400 uppercase italic tracking-widest">
+                                                ${lead.ai_margin?.toLocaleString() || '0'}
+                                            </span>
+                                        </div>
+                                        {lead.ai_recon_est && lead.ai_recon_est > 0 && (
+                                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
+                                                <div className="w-1 h-1 bg-red-500 rounded-full" />
+                                                <span className="text-[8px] font-black text-red-400 uppercase italic tracking-widest">Recon Exp</span>
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-lg p-2 group-hover/row:border-indigo-500/20 transition-all">
                                         <p className="text-[9px] text-slate-300 italic font-bold leading-tight line-clamp-2">
                                             {lead.ai_notes || "Awaiting neural analysis..."}
@@ -155,7 +170,13 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     </div>
                                 </td>
                                 <td className="p-3 font-black text-slate-300 italic tracking-tighter">
-                                    {lead.title.match(/\b(19|20)\d{2}\b/)?.[0] || '---'}
+                                    {lead.year || lead.title.match(/\b(19|20)\d{2}\b/)?.[0] || '---'}
+                                </td>
+                                <td className="p-3">
+                                    <div className="flex items-center gap-1 text-[8px] text-indigo-400 font-black uppercase tracking-widest italic">
+                                        <MapPin size={8} />
+                                        <span className="truncate">{lead.city || lead.location || 'N/A'}</span>
+                                    </div>
                                 </td>
                                 <td className="p-3 font-black text-slate-300 italic tracking-tighter">
                                     {lead.mileage?.toLocaleString()} <span className="text-[7px] text-slate-600">MI</span>

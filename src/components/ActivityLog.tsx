@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Clock, Zap, MessageSquare, Target, Info, AlertCircle } from 'lucide-react';
+import { Clock, Zap, MessageSquare, Target } from 'lucide-react';
 
 type LogEntry = {
     id: string;
@@ -13,7 +13,7 @@ type LogEntry = {
 };
 
 export const ActivityLog = () => {
-    const [logs, setLogs] = useState<LogEntry[]>([]);
+    const [logs, setLogs] = useState([] as any[]);
 
     useEffect(() => {
         // Initial fetch of recent activity
@@ -30,6 +30,12 @@ export const ActivityLog = () => {
                 .order('sent_at', { ascending: false })
                 .limit(5);
 
+            const { data: runs } = await supabase
+                .from('scrape_runs')
+                .select('id, status, created_at')
+                .order('created_at', { ascending: false })
+                .limit(5);
+
             const initialLogs: LogEntry[] = [
                 ...(leads || []).map((l: any) => ({
                     id: l.id,
@@ -44,8 +50,20 @@ export const ActivityLog = () => {
                     message: `${m.direction} Message: ${m.content.slice(0, 50)}...`,
                     timestamp: new Date(m.sent_at),
                     status: 'info' as const
-                }))
-            ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 10);
+                })),
+                ...(runs || []).map((r: any) => {
+                    const isStuck = r.status === 'Pending' && (new Date().getTime() - new Date(r.created_at).getTime()) > 10 * 60 * 1000;
+                    return {
+                        id: r.id,
+                        type: 'scan' as const,
+                        message: isStuck 
+                            ? `Cloud Engine Offline: Node handshake timed out` 
+                            : `Cloud Engine ${r.status}: Scanning system nodes...`,
+                        timestamp: new Date(r.created_at),
+                        status: r.status === 'Success' ? 'success' as const : (isStuck ? 'warning' as const : 'info' as const)
+                    };
+                })
+            ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 15);
 
             setLogs(initialLogs);
         };
@@ -81,6 +99,25 @@ export const ActivityLog = () => {
                     ...prev
                 ].slice(0, 15));
             })
+            .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'scrape_runs' }, (payload: any) => {
+                const run = payload.new;
+                setLogs((prev: LogEntry[]) => {
+                    const filtered = prev.filter(p => p.id !== run.id);
+                    const isStuck = run.status === 'Pending' && (new Date().getTime() - new Date(run.created_at).getTime()) > 10 * 60 * 1000;
+                    return [
+                        {
+                            id: run.id,
+                            type: 'scan',
+                            message: isStuck 
+                                ? `Cloud Engine Offline: Node handshake timed out` 
+                                : `Cloud Engine ${run.status}: Scanning system nodes...`,
+                            timestamp: new Date(run.created_at),
+                            status: run.status === 'Success' ? 'success' : (isStuck ? 'warning' : 'info')
+                        },
+                        ...filtered
+                    ].slice(0, 15);
+                });
+            })
             .subscribe();
 
         return () => {
@@ -93,7 +130,7 @@ export const ActivityLog = () => {
             case 'lead': return <Target size={14} className="text-emerald-400" />;
             case 'message': return <MessageSquare size={14} className="text-indigo-400" />;
             case 'scan': return <Zap size={14} className="text-amber-400" />;
-            default: return <Info size={14} className="text-slate-400" />;
+            default: return <Zap size={14} className="text-slate-400" />;
         }
     };
 

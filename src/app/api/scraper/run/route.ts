@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { runScraper } from '@/lib/scraper';
 
+/**
+ * POST /api/scraper/run
+ *
+ * Manual "Force Scan" trigger from the Control Center UI.
+ * Scheduling is owned by cron-job.org (every 30 min) — this is just a
+ * one-off override for immediate testing or manual runs.
+ */
 export async function POST(req: NextRequest) {
     try {
-        // Find the most recently updated settings record (fallback for dev)
         const { data: settings, error: settingsError } = await supabase
             .from('settings')
             .select('*')
@@ -13,19 +19,14 @@ export async function POST(req: NextRequest) {
             .maybeSingle();
 
         if (settingsError) throw settingsError;
-        if (!settings) return Response.json({ success: false, error: 'No settings found. Please configure your search in Settings.' }, { status: 404 });
-
-        const { force } = await req.json().catch(() => ({ force: false }));
-        const result = await runScraper(settings, false, force);
-
-        if (!result.success && (result.reason === 'cooldown' || result.reason === 'sleeping')) {
-            return Response.json({
-                success: false,
-                error: `System in ${result.reason} mode. Next run available in ${result.wait} minutes.`,
-                wait: result.wait
-            }, { status: 429 });
+        if (!settings) {
+            return Response.json(
+                { success: false, error: 'No settings found. Please configure your search in Settings.' },
+                { status: 404 }
+            );
         }
 
+        const result = await runScraper(settings, false);
         return Response.json({ success: true, result });
     } catch (e: any) {
         console.error('[Scraper API Error]:', e);

@@ -2,17 +2,27 @@ import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { runScraper } from '@/lib/scraper';
 
+/**
+ * GET /api/scraper/pulse
+ *
+ * Called by cron-job.org every 30 minutes.
+ * Fires the scraper unconditionally for all settings records.
+ * No internal scheduling logic — cron-job.org owns the clock.
+ */
 export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(req.url);
-        const force = searchParams.get('force') === 'true';
-
-        const { data: dealers } = await supabase.from('settings').select('*').eq('auto_scan_enabled', true);
-        if (!dealers) return Response.json({ success: true, message: 'None' });
-        for (const s of dealers) {
-            await runScraper(s, false, force);
+        const { data: allSettings } = await supabase.from('settings').select('*');
+        if (!allSettings || allSettings.length === 0) {
+            return Response.json({ success: true, message: 'No settings records found.' });
         }
-        return Response.json({ success: true });
+
+        let sessions = 0;
+        for (const s of allSettings) {
+            await runScraper(s, false);
+            sessions++;
+        }
+
+        return Response.json({ success: true, sessions });
     } catch (e: any) {
         return Response.json({ success: false, error: e.message }, { status: 500 });
     }

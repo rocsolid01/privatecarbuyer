@@ -4,7 +4,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 FROM public.ecr.aws/lambda/python:3.12
 
-# Install system dependencies required by Chromium/Playwright on Amazon Linux 2023
+# Install system dependencies required by Chromium/Playwright
+# Note: Python 3.12 base = Amazon Linux 2023 (GLIBC 2.34) — satisfies Playwright Node.js requirement
 RUN dnf install -y \
     atk \
     cups-libs \
@@ -28,7 +29,7 @@ RUN dnf install -y \
     && dnf clean all
 
 # Force rebuild of subsequent layers
-RUN echo "Final Deployment: 1773713800" > /build_info
+RUN echo "Rebuild: 2026-03-18-httpx-fix" > /build_info
 
 # Set Playwright browser path within the task root
 ENV PLAYWRIGHT_BROWSERS_PATH=${LAMBDA_TASK_ROOT}/pw-browsers

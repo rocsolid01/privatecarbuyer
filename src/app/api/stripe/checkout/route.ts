@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
             payment_method_types: ['card'],
             line_items: [{ price: priceId, quantity: 1 }],
             mode: 'subscription',
-            success_url: process.env.NEXT_PUBLIC_APP_URL + '/dashboard',
+            success_url: process.env.NEXT_PUBLIC_APP_URL + '/settings',
             cancel_url: process.env.NEXT_PUBLIC_APP_URL + '/',
             customer_email: customerEmail,
         });

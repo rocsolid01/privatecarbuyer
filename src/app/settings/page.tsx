@@ -9,21 +9,37 @@ import { LeadAnalysisTable } from '@/components/LeadAnalysisTable';
 import { TOOLTIP_CONTENT } from '@/lib/tooltip-content';
 import { Lead } from '@/types/database';
 // @ts-ignore
-import { Save, MapPin, Target, Bell, Zap, MessageSquare, ExternalLink, CheckCircle2, Clock, Play, Loader2, Archive, Send, Maximize2, Minimize2, X } from 'lucide-react';
+import { Save, MapPin, Target, Bell, Zap, MessageSquare, ExternalLink, CheckCircle2, Clock, Play, Loader2, Archive, Send, Maximize2, Minimize2, X, Sliders, Timer } from 'lucide-react';
+import { LeadFilters, DealershipFilters } from '@/components/LeadFilters';
 
 export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [scanning, setScanning] = useState(false);
+    const [engineStatus, setEngineStatus] = useState('Checking' as 'Checking' | 'Online' | 'Offline' | 'Stalled');
     const [error, setError] = useState(null as string | null);
     const [success, setSuccess] = useState(null as string | null);
 
     // Lead Management State (Cloned from Dashboard)
     const [leads, setLeads] = useState([] as any[]);
-    const [selectedLeads, setSelectedLeads] = useState(new Set<string>() as Set<string>);
+    const [selectedLeads, setSelectedLeads] = useState(new Set<string>() as any);
     const [bulkUpdating, setBulkUpdating] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState(new Date() as any);
     const [searchQuery, setSearchQuery] = useState('');
     const [isTableMaximized, setIsTableMaximized] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filters, setFilters] = useState({
+        search: '',
+        city: '',
+        minYear: '',
+        maxYear: '',
+        minPrice: '',
+        maxPrice: '',
+        maxMileage: '',
+        minMargin: '',
+        status: '',
+        titleStatus: '',
+    } as any);
     const [settings, setSettings] = useState({
         location: 'Los Angeles, CA',
         zip: '90001',
@@ -43,7 +59,7 @@ export default function SettingsPage() {
         sms_numbers: ['+15551234567'],
         // New Dealership Fields
         pulse_interval: 15,
-        max_items_per_city: 2,
+        max_items_per_city: 25,
         unicorn_threshold: 4000,
         outreach_sms_goal: 'Ask for bottom dollar',
         ai_persona: 'Professional but casual car buyer',
@@ -66,7 +82,8 @@ export default function SettingsPage() {
         active_hour_end: 22,
         daily_budget_usd: 1.00,
         budget_spent_today: 0.00,
-        exclude_salvage: true
+        exclude_salvage: true,
+        auto_scan_enabled: true
     });
 
     const fetchSettings = async () => {
@@ -84,7 +101,8 @@ export default function SettingsPage() {
                 condition_include: data.condition_include || settings.condition_include,
                 condition_exclude: data.condition_exclude || settings.condition_exclude,
                 motivation_keywords: data.motivation_keywords || settings.motivation_keywords,
-                exclude_salvage: data.exclude_salvage ?? settings.exclude_salvage, // Handle new boolean field
+                exclude_salvage: data.exclude_salvage ?? settings.exclude_salvage, 
+                auto_scan_enabled: data.auto_scan_enabled ?? settings.auto_scan_enabled, 
             });
         }
     };
@@ -94,7 +112,10 @@ export default function SettingsPage() {
             .from('leads')
             .select('*')
             .order('post_time', { ascending: false });
-        if (data) setLeads(data);
+        if (data) {
+            setLeads(data);
+            setLastUpdated(new Date());
+        }
     };
 
     const handleStatusChange = async (id: string, status: Lead['status']) => {
@@ -148,22 +169,92 @@ export default function SettingsPage() {
         const channel = supabase
             .channel('settings-leads')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, (payload: any) => {
-                if (payload.eventType === 'INSERT') setLeads((prev: Lead[]) => [payload.new as Lead, ...prev]);
+                if (payload.eventType === 'INSERT') {
+                    setLeads((prev: Lead[]) => [payload.new as Lead, ...prev]);
+                    setLastUpdated(new Date());
+                }
                 else if (payload.eventType === 'UPDATE') setLeads((prev: Lead[]) => prev.map(l => l.id === payload.new.id ? (payload.new as Lead) : l));
                 else if (payload.eventType === 'DELETE') setLeads((prev: Lead[]) => prev.filter(l => l.id !== payload.old.id));
             })
             .subscribe();
 
-        return () => { supabase.removeChannel(channel); };
+        const checkEngine = async () => {
+            try {
+                // Heartbeat to Lambda (using a no-op payload if possible, or just a ping)
+                // Since this is a restricted request, we just check if the URL responds
+                const start = Date.now();
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), 8000);
+                
+                const res = await fetch('/api/scraper/check', { signal: controller.signal });
+                clearTimeout(id);
+                
+                if (res.ok) {
+                    setEngineStatus('Online');
+                } else {
+                    setEngineStatus('Offline');
+                }
+            } catch (err) {
+                setEngineStatus('Offline');
+            }
+        };
+
+        checkEngine();
+        const heartbeatInterval = setInterval(checkEngine, 60000); // Pulse every minute
+
+        return () => { 
+            supabase.removeChannel(channel); 
+            clearInterval(heartbeatInterval);
+        };
     }, []);
+
+    const availableCities = useMemo(() => {
+        const cities = leads.map((l: Lead) => l.city).filter(Boolean);
+        return Array.from(new Set(cities)) as string[];
+    }, [leads]);
 
     const filteredLeads = useMemo(() => {
         return leads.filter((l: Lead) => {
-            const matchesSearch = l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                l.location?.toLowerCase().includes(searchQuery.toLowerCase());
-            return matchesSearch;
+            // Text Search
+            const matchesSearch = !filters.search || 
+                l.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+                l.location?.toLowerCase().includes(filters.search.toLowerCase()) ||
+                l.city?.toLowerCase().includes(filters.search.toLowerCase()) ||
+                l.ai_notes?.toLowerCase().includes(filters.search.toLowerCase());
+
+            // City Filter
+            const matchesCity = !filters.city || l.city === filters.city;
+
+            // Year Filter
+            const year = l.year ? parseInt(l.year as any) : parseInt(l.title.match(/\b(19|20)\d{2}\b/)?.[0] || '0');
+            const matchesMinYear = !filters.minYear || (year >= parseInt(filters.minYear));
+            const matchesMaxYear = !filters.maxYear || (year > 0 && year <= parseInt(filters.maxYear));
+
+            // Price Filter
+            const price = l.price;
+            const matchesMinPrice = !filters.minPrice || (price !== null && price >= parseInt(filters.minPrice));
+            const matchesMaxPrice = !filters.maxPrice || (price !== null && price <= parseInt(filters.maxPrice));
+
+            // Mileage Filter
+            const mileage = l.mileage;
+            const matchesMileage = !filters.maxMileage || (mileage !== null && mileage <= parseInt(filters.maxMileage));
+
+            // Margin Filter
+            const margin = l.ai_margin;
+            const matchesMargin = !filters.minMargin || (margin !== null && margin >= parseInt(filters.minMargin));
+
+            // Status Filter
+            const matchesStatus = !filters.status || l.status === filters.status;
+
+            // Title Status Filter
+            const matchesTitle = !filters.titleStatus || 
+                (filters.titleStatus === 'Clean' ? l.is_clean_title : !l.is_clean_title);
+
+            return matchesSearch && matchesCity && matchesMinYear && matchesMaxYear && 
+                   matchesMinPrice && matchesMaxPrice && matchesMileage && matchesMargin && 
+                   matchesStatus && matchesTitle;
         });
-    }, [leads, searchQuery]);
+    }, [leads, filters]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -192,7 +283,6 @@ export default function SettingsPage() {
             const resp = await fetch('/api/scraper/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ force: true })
             });
             const data = await resp.json();
             if (resp.ok) {
@@ -243,7 +333,7 @@ export default function SettingsPage() {
             post_age_max: 1,
             margin_min: 1500,
             pulse_interval: 15,
-            max_items_per_city: 2,
+            max_items_per_city: 25,
             unicorn_threshold: 4000,
             recon_multiplier: 1.0,
             active_hour_start: 7,
@@ -251,7 +341,8 @@ export default function SettingsPage() {
             batch_size: 5,
             sms_require_vin: false,
             daily_budget_usd: 1.00,
-            exclude_salvage: true
+            exclude_salvage: true,
+            auto_scan_enabled: true
         });
     };
 
@@ -279,18 +370,78 @@ export default function SettingsPage() {
                         <h1 className="text-6xl font-black text-white uppercase tracking-tighter italic leading-none">
                             Control <span className="text-indigo-500">Center</span>
                         </h1>
+                        {/* Control Center Panel */}
                         <p className="text-slate-500 font-black uppercase tracking-[0.2em] text-[10px] mt-2 ml-1 opacity-70">Strategic Sniper Configuration • Global System Toggling</p>
+                        
+                        {/* Scan Controls Panel */}
+                        <div className="mt-6 flex flex-wrap items-center gap-4">
+                            <div className="inline-flex items-center gap-4 bg-slate-900/80 border border-emerald-500/20 rounded-[2rem] p-2 pr-6 shadow-xl relative overflow-hidden">
+                                <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                                    <Timer size={20} className="text-emerald-400" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-black uppercase tracking-widest text-[11px] italic text-white">
+                                        30-Min Auto Scan
+                                    </span>
+                                    <span className="font-bold uppercase tracking-[0.2em] text-[8px] text-slate-400 mt-0.5 flex items-center gap-1.5">
+                                        <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${engineStatus === 'Online' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                        {engineStatus === 'Online' ? 'ACTIVE' : 'STANDBY — Engine Offline'}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => setSettings({ ...settings, auto_scan_enabled: !settings.auto_scan_enabled })}
+                                    className={`ml-6 flex items-center gap-2 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all transform active:scale-95 ${
+                                        settings.auto_scan_enabled 
+                                            ? 'bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
+                                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
+                                    }`}
+                                >
+                                    {settings.auto_scan_enabled ? (
+                                        <>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_5px_rgba(248,113,113,0.8)] animate-pulse" />
+                                            STOP
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play size={10} className="fill-current" />
+                                            ACTIVATE
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Manual Scan Button */}
+                            {scanning ? (
+                                <button
+                                    onClick={handleStopScan}
+                                    className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-8 py-4 rounded-[2rem] font-black flex items-center gap-3 transition-all shadow-[0_0_20px_rgba(220,38,38,0.2)] active:scale-95 uppercase tracking-[0.2em] text-[11px] border border-red-500/30 group"
+                                >
+                                    <div className="w-2 h-2 bg-red-500 rounded-full animate-ping group-hover:bg-white" />
+                                    Stop Manual Scan
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleScan}
+                                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-[2rem] font-black flex items-center gap-3 transition-all shadow-xl shadow-indigo-500/20 active:scale-95 uppercase tracking-[0.2em] text-[11px] border border-indigo-400/20"
+                                    title="Forces an immediate scan for new listings"
+                                >
+                                    <Play size={14} className="fill-current" />
+                                    Manual Scan
+                                </button>
+                            )}
+                        </div>
+
                     </div>
                     <div className="flex flex-wrap items-center gap-4">
                         <button
                             onClick={resetToOptimalDefaults}
-                            className="px-6 py-2.5 rounded-xl font-black text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-[9px] border border-white/5 bg-white/5 hover:bg-white/10"
+                            className="px-6 py-2.5 rounded-xl font-black text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-[10px] border border-white/5 bg-white/5 hover:bg-white/10"
                         >
                             Reset Logic
                         </button>
                         <button
                             onClick={fetchSettings}
-                            className="px-6 py-2.5 rounded-xl font-black text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-[9px] border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
+                            className="px-6 py-2.5 rounded-xl font-black text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-[10px] border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
                         >
                             <Clock size={12} />
                             Load Config
@@ -298,70 +449,59 @@ export default function SettingsPage() {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="px-6 py-2.5 rounded-xl font-black text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-[9px] border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
+                            className="px-6 py-2.5 rounded-xl font-black text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-[10px] border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
                         >
                             <Save size={12} />
                             {saving ? 'Syncing...' : 'Save Changes'}
                         </button>
 
-                        <div className="h-8 w-px bg-white/10 mx-2" />
-
-                        {scanning ? (
-                            <button
-                                onClick={handleStopScan}
-                                className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-10 py-4 rounded-2xl font-black flex items-center gap-3 transition-all shadow-[0_0_40px_rgba(220,38,38,0.2)] active:scale-95 uppercase tracking-[0.2em] text-[10px] border border-red-500/30 group"
-                            >
-                                <div className="w-2 h-2 bg-red-500 rounded-full animate-ping group-hover:bg-white" />
-                                Stop Sniper Scan
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleScan}
-                                className="bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-4 rounded-2xl font-black flex items-center gap-3 transition-all shadow-[0_0_60px_rgba(79,70,229,0.4)] active:scale-95 uppercase tracking-[0.2em] text-[10px] border border-white/10 glow-indigo"
-                            >
-                                <Play size={18} className="fill-current" />
-                                Start Sniper Scan
-                            </button>
-                        )}
                     </div>
                 </div>
 
                 <div className="max-w-4xl mx-auto space-y-16 pb-32">
                     {/* Rank 1: Makes & Models */}
-                    <section className="glass-card p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-12 opacity-[0.05] group-hover:opacity-10 transition-opacity">
-                            <Target size={140} className="text-indigo-500" />
+                    <section className="glass-card p-6 md:p-8 rounded-3xl shadow-xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:opacity-10 transition-opacity">
+                            <Target size={100} className="text-indigo-500" />
                         </div>
-                        <div className="flex items-center gap-5 mb-12">
-                            <div className="flex items-center justify-center w-14 h-14 bg-indigo-600 rounded-[1.25rem] text-white font-black text-2xl italic shadow-2xl shadow-indigo-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">1</div>
+                        <div className="flex items-center gap-4 mb-6 md:mb-8">
+                            <div className="flex items-center justify-center w-10 h-10 bg-indigo-600 rounded-xl text-white font-black text-xl italic shadow-lg shadow-indigo-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">1</div>
                             <div>
-                                <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Asset Intelligence</h2>
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.25em] opacity-70">Primary Filter: Controls fast-turn inventory flow</p>
+                                <div className="flex items-center gap-3">
+                                    <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tighter italic">Tactical Listing</h2>
+                                    <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+                                        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping" />
+                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest italic">
+                                            Live Intel: {lastUpdated.toLocaleTimeString()}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] opacity-70">Primary Filter: Controls fast-turn inventory flow</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-2">
-                                    <Zap size={12} className="text-indigo-400" /> Target Brands
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-1">
+                                    <Zap size={10} className="text-indigo-400" /> Target Brands
                                     <InfoTooltip content={TOOLTIP_CONTENT.ASSET_BRANDS} />
                                 </label>
                                 <textarea
                                     value={settings.makes.join(', ')}
                                     onChange={(e) => setSettings({ ...settings, makes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                                    className="w-full bg-slate-950/60 border border-white/5 rounded-[2rem] p-8 focus:ring-2 focus:ring-indigo-500/50 text-white font-black uppercase tracking-widest text-xs placeholder:text-slate-800 focus:bg-slate-950 transition-all leading-relaxed"
+                                    className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500/50 text-white font-black uppercase tracking-widest text-xs placeholder:text-slate-800 focus:bg-slate-950 transition-all leading-snug"
                                     rows={3}
                                     placeholder="Honda, Toyota, Lexus..."
                                 />
                             </div>
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-2">
-                                    <Target size={12} className="text-indigo-400" /> Priority Models
+                            <div className="space-y-3">
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-1">
+                                    <Target size={10} className="text-indigo-400" /> Priority Models
                                     <InfoTooltip content={TOOLTIP_CONTENT.CITY_DENSITY} />
                                 </label>
                                 <textarea
                                     value={(settings as any).priority_models?.join(', ') || ''}
                                     onChange={(e) => setSettings({ ...settings, priority_models: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } as any)}
-                                    className="w-full bg-slate-950/60 border border-white/5 rounded-[2rem] p-8 focus:ring-2 focus:ring-indigo-500/50 text-white font-black uppercase tracking-widest text-xs placeholder:text-slate-800 focus:bg-slate-950 transition-all leading-relaxed"
+                                    className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500/50 text-white font-black uppercase tracking-widest text-xs placeholder:text-slate-800 focus:bg-slate-950 transition-all leading-snug"
                                     rows={3}
                                     placeholder="Civic, Camry, F-150..."
                                 />
@@ -370,67 +510,110 @@ export default function SettingsPage() {
                     </section>
 
                     {/* Rank 2 & 3: Year & Mileage */}
-                    <section className="glass-card p-10 rounded-[3rem] shadow-2xl group">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-                            <div className="space-y-8">
-                                <div className="flex items-center gap-5">
-                                    <div className="flex items-center justify-center w-12 h-12 bg-slate-900 rounded-[1.25rem] text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">2</div>
+                    <section className="glass-card p-6 md:p-8 rounded-3xl shadow-xl group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">2</div>
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">Vintage Range</h3>
                                             <InfoTooltip content={TOOLTIP_CONTENT.YEAR_THRESHOLD} />
                                         </div>
-                                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] opacity-70">Reduces recon exposure</p>
+                                        <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.2em] opacity-70">Reduces recon exposure</p>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-6">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">FROM</p>
-                                        <input type="number" value={settings.year_min} onChange={e => setSettings({ ...settings, year_min: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-5 font-black text-center text-white focus:bg-slate-950 transition-all" />
+                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">FROM</p>
+                                        <input type="number" value={settings.year_min} onChange={e => setSettings({ ...settings, year_min: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-xl p-3 md:p-4 font-black text-center text-white text-sm focus:bg-slate-950 transition-all" />
                                     </div>
                                     <div className="space-y-2">
-                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">TO</p>
-                                        <input type="number" value={settings.year_max || 2026} onChange={e => setSettings({ ...settings, year_max: parseInt(e.target.value) } as any)} className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-5 font-black text-center text-white focus:bg-slate-950 transition-all" />
+                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">TO</p>
+                                        <input type="number" value={settings.year_max || 2026} onChange={e => setSettings({ ...settings, year_max: parseInt(e.target.value) } as any)} className="w-full bg-slate-950/60 border border-white/5 rounded-xl p-3 md:p-4 font-black text-center text-white text-sm focus:bg-slate-950 transition-all" />
                                     </div>
                                 </div>
                                 <div className="space-y-2 pt-4 border-t border-white/5">
                                     <div className="flex items-center gap-2">
-                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">MAX POST AGE (HOURS)</p>
+                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">MAX POST AGE (HOURS)</p>
                                         <InfoTooltip content="Only scrape listings newer than this many hours." />
                                     </div>
-                                    <input type="number" value={settings.post_age_max || 24} onChange={e => setSettings({ ...settings, post_age_max: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-5 font-black text-white focus:bg-slate-950 transition-all px-8" />
+                                    <input type="number" value={settings.post_age_max || 24} onChange={e => setSettings({ ...settings, post_age_max: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-xl p-3 md:p-4 font-black text-white text-sm focus:bg-slate-950 transition-all px-6" />
                                 </div>
-                                <div className="flex items-center justify-between p-5 bg-slate-950/40 border border-white/5 rounded-2xl group/toggle cursor-pointer hover:bg-slate-950/60 transition-all mt-4" onClick={() => setSettings({ ...settings, exclude_salvage: !settings.exclude_salvage })}>
+                                <div className="flex items-center justify-between p-4 bg-slate-950/40 border border-white/5 rounded-xl group/toggle cursor-pointer hover:bg-slate-950/60 transition-all mt-4" onClick={() => setSettings({ ...settings, exclude_salvage: !settings.exclude_salvage })}>
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${settings.exclude_salvage ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500'}`}>
-                                            <Zap size={16} className={settings.exclude_salvage ? 'fill-indigo-400' : ''} />
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${settings.exclude_salvage ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500'}`}>
+                                            <Zap size={14} className={settings.exclude_salvage ? 'fill-indigo-400' : ''} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black text-white uppercase tracking-widest italic leading-none">Exclude Salvage</p>
-                                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider mt-1 opacity-60">Filtered At Source</p>
+                                            <p className="text-[9px] font-black text-white uppercase tracking-widest italic leading-none">Exclude Salvage</p>
+                                            <p className="text-[7px] text-slate-500 font-bold uppercase tracking-wider mt-1 opacity-60">Filtered At Source</p>
                                         </div>
                                     </div>
-                                    <div className={`w-12 h-6 rounded-full p-1 transition-all ${settings.exclude_salvage ? 'bg-indigo-500' : 'bg-slate-800'}`}>
-                                        <div className={`w-4 h-4 rounded-full bg-white shadow-lg transition-transform ${settings.exclude_salvage ? 'translate-x-6' : 'translate-x-0'}`} />
+                                    <div className={`w-10 h-5 rounded-full p-1 transition-all ${settings.exclude_salvage ? 'bg-indigo-500' : 'bg-slate-800'}`}>
+                                        <div className={`w-3 h-3 rounded-full bg-white shadow-lg transition-transform ${settings.exclude_salvage ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-8 border-l border-white/5 pl-4 md:pl-16">
-                                <div className="flex items-center gap-5">
-                                    <div className="flex items-center justify-center w-12 h-12 bg-slate-900 rounded-[1.25rem] text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">3</div>
+                            <div className="space-y-6 border-l border-white/5 pl-4 md:pl-8">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">3</div>
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">Odometer Limit</h3>
                                             <InfoTooltip content={TOOLTIP_CONTENT.MILEAGE_CAP} />
                                         </div>
-                                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] opacity-70">Preserves flip velocity</p>
+                                        <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.2em] opacity-70">Preserves flip velocity</p>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">MAX MILES</p>
-                                    <input type="number" value={settings.mileage_max} onChange={e => setSettings({ ...settings, mileage_max: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-5 font-black text-white focus:bg-slate-950 transition-all px-8" />
+                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">MAX MILES</p>
+                                    <input type="number" value={settings.mileage_max} onChange={e => setSettings({ ...settings, mileage_max: parseInt(e.target.value) })} className="w-full bg-slate-950/60 border border-white/5 rounded-xl p-3 md:p-4 font-black text-white text-sm focus:bg-slate-950 transition-all px-6" />
                                 </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Rank 4: Listings Per Session */}
+                    <section className="glass-card p-10 rounded-[3rem] shadow-2xl group border-4 border-red-500 relative overflow-hidden">
+                        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-1 rounded-full font-black text-[10px] z-50 animate-bounce">SECTION 4 DEBUG ACTIVE</div>
+                        <div className="absolute top-0 right-0 p-12 opacity-[0.05] group-hover:opacity-10 transition-opacity">
+                            <Zap size={140} className="text-indigo-500" />
+                        </div>
+                        <div className="flex items-center gap-5 mb-12">
+                            <div className="flex items-center justify-center w-14 h-14 bg-indigo-600 rounded-[1.25rem] text-white font-black text-2xl italic shadow-2xl shadow-indigo-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">4</div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Control Speed</h2>
+                                    <InfoTooltip content="Scraped leads per 30-min session. Higher = More results/More cost." />
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.25em] opacity-70">Listings Per Session: Calibrates ingestion velocity</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-10">
+                            <div className="flex-1 space-y-4">
+                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] leading-relaxed">
+                                    Adjust the number of car listings scraped during each automated 30-minute pulse. Higher values increase the probability of finding gems but consume more budget.
+                                </p>
+                                <div className="flex items-center gap-4 bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10">
+                                    <Timer size={16} className="text-indigo-400" />
+                                    <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">30-Minute Cycle Enabled</span>
+                                </div>
+                            </div>
+                            <div className="w-48 space-y-3">
+                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] block text-center">BATCH SIZE</label>
+                                <input
+                                    type="number"
+                                    min={5}
+                                    max={200}
+                                    value={(!settings.max_items_per_city || isNaN(settings.max_items_per_city)) ? 25 : settings.max_items_per_city}
+                                    onChange={e => {
+                                        const parsed = parseInt(e.target.value);
+                                        setSettings({ ...settings, max_items_per_city: isNaN(parsed) ? 25 : parsed } as any);
+                                    }}
+                                    className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
+                                />
                             </div>
                         </div>
                     </section>
@@ -464,55 +647,12 @@ export default function SettingsPage() {
                         </div>
                     </section>
 
-                    {/* Rank 6: System Resource Guardrails */}
-                    <section className="glass-card p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group border-2 border-emerald-500/20">
-                        <div className="flex items-center gap-5 mb-12">
-                            <div className="flex items-center justify-center w-14 h-14 bg-emerald-600 rounded-[1.25rem] text-white font-black text-2xl italic shadow-2xl shadow-emerald-500/40 transform -rotate-3 group-hover:rotate-0 transition-transform">6</div>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Budget Guardrail</h2>
-                                    <InfoTooltip content="Hard limits to prevent Apify overspending. Resets daily at midnight." />
-                                </div>
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.25em] opacity-70">Protects your recurring balance</p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-2">
-                                    Daily Max Budget ($USD)
-                                </label>
-                                <div className="flex items-center bg-slate-950/60 border border-white/5 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500/50">
-                                    <span className="pl-6 text-emerald-500 font-black text-lg">$</span>
-                                    <input 
-                                        type="number" 
-                                        step="0.01" 
-                                        value={settings.daily_budget_usd} 
-                                        onChange={e => setSettings({ ...settings, daily_budget_usd: parseFloat(e.target.value) })} 
-                                        className="w-full bg-transparent border-none p-6 font-black text-white text-lg" 
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-2 text-indigo-400">
-                                    Spent Today (Live Tracking)
-                                </label>
-                                <div className="bg-slate-950/60 border border-white/5 rounded-2xl p-6 flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <p className="text-2xl font-black text-white italic leading-none">${settings.budget_spent_today?.toFixed(4)}</p>
-                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] mt-2 italic">Updated after each pulse</p>
-                                    </div>
-                                    <div className="w-12 h-12 rounded-full border-2 border-slate-900 border-t-emerald-500 animate-spin" />
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Rank 7 & 8: Condition & Motivation */}
+                    {/* Rank 6 & 7: Condition & Motivation */}
                     <section className="glass-card p-10 rounded-[3rem] shadow-2xl mb-12">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
                             <div className="space-y-8">
                                 <div className="flex items-center gap-5">
-                                    <div className="flex items-center justify-center w-12 h-12 bg-slate-900 rounded-[1.25rem] text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">7</div>
+                                    <div className="flex items-center justify-center w-12 h-12 bg-slate-900 rounded-[1.25rem] text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">6</div>
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">Linguistic Filters</h3>
                                         <InfoTooltip content={TOOLTIP_CONTENT.SMS_SAFEGUARDS} />
@@ -530,7 +670,7 @@ export default function SettingsPage() {
                             </div>
                             <div className="space-y-8 border-l border-white/5 pl-4 md:pl-16">
                                 <div className="flex items-center gap-5">
-                                    <div className="flex items-center justify-center w-12 h-12 bg-slate-900 rounded-[1.25rem] text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">8</div>
+                                    <div className="flex items-center justify-center w-12 h-12 bg-slate-900 rounded-[1.25rem] text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">7</div>
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">Motivation Radar</h3>
                                         <InfoTooltip content={TOOLTIP_CONTENT.AI_NOTES} />
@@ -548,81 +688,15 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </section>
-
-                    {/* AI Master Engine Section */}
-                    <section className="glass-card p-10 rounded-[4rem] shadow-2xl relative overflow-hidden border-2 border-indigo-500/20">
-                        <div className="absolute top-0 right-0 p-16 opacity-[0.05]">
-                            <Zap size={180} className="text-indigo-400 animate-pulse" />
-                        </div>
-                        <div className="flex items-center gap-6 mb-12 relative z-10">
-                            <div className="p-5 bg-indigo-600 rounded-[2rem] text-white shadow-2xl shadow-indigo-500/40">
-                                <Zap size={32} className="fill-current" />
-                            </div>
-                            <div>
-                                <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic">Deep-Neural Sniper</h2>
-                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] opacity-80 mt-1">Autonomous Outreach & Persona Logic</p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2 px-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Outreach Persona (Voice)</label>
-                                    <InfoTooltip content={TOOLTIP_CONTENT.AI_PERSONA} />
-                                </div>
-                                <textarea
-                                    value={settings.ai_persona || ''}
-                                    onChange={(e) => setSettings({ ...settings, ai_persona: e.target.value } as any)}
-                                    className="w-full bg-slate-950/80 border border-white/5 rounded-[2.5rem] p-10 focus:ring-2 focus:ring-indigo-500/50 text-white font-black text-xs tracking-widest leading-relaxed focus:bg-slate-950 transition-all"
-                                    rows={5}
-                                    placeholder="You are an elite private car buyer from California..."
-                                />
-                            </div>
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2 px-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Primary Objective Goal</label>
-                                    <InfoTooltip content={TOOLTIP_CONTENT.OUTREACH_GOAL} />
-                                </div>
-                                <textarea
-                                    value={settings.outreach_sms_goal || ''}
-                                    onChange={(e) => setSettings({ ...settings, outreach_sms_goal: e.target.value } as any)}
-                                    className="w-full bg-slate-950/80 border border-white/5 rounded-[2.5rem] p-10 focus:ring-2 focus:ring-indigo-500/50 text-white font-black text-xs tracking-widest leading-relaxed focus:bg-slate-950 transition-all"
-                                    rows={5}
-                                    placeholder="Your goal is to secure a same-day inspection..."
-                                />
-                            </div>
-                        </div>
-
-                        <div className="mt-16 bg-slate-950/40 border border-white/5 rounded-[3rem] p-12 text-center group">
-                            <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-8 group-hover:italic transition-all flex items-center justify-center gap-3">
-                                Launch Autonomous Sniper Mode
-                                <InfoTooltip content={TOOLTIP_CONTENT.AUTO_OUTREACH} />
-                            </h3>
-                            <div className="flex justify-center">
-                                <button
-                                    onClick={() => setSettings({ ...settings, sms_auto_enabled: !settings.sms_auto_enabled })}
-                                    className={`relative flex items-center gap-10 px-16 py-8 rounded-[2.5rem] transition-all border-4 duration-700 ${settings.sms_auto_enabled
-                                        ? 'bg-red-600 border-red-400 shadow-[0_0_80px_rgba(220,38,38,0.4)]'
-                                        : 'bg-slate-900 border-slate-800'
-                                        }`}
-                                >
-                                    <div className={`p-4 rounded-full ${settings.sms_auto_enabled ? 'bg-white text-red-600 animate-pulse' : 'bg-slate-800 text-slate-600'}`}>
-                                        <Zap size={24} fill="currentColor" />
-                                    </div>
-                                    <span className={`text-2xl font-black uppercase tracking-tighter italic ${settings.sms_auto_enabled ? 'text-white' : 'text-slate-700'}`}>
-                                        {settings.sms_auto_enabled ? 'Engine Armed & Tracking' : 'Engine Safe/Standby'}
-                                    </span>
-                                </button>
-                            </div>
-                            <p className="mt-8 text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] px-8">sniping activity monitored 24/7 • automated SMS triggers active</p>
-                        </div>
-                    </section>
                     {/* Lead Activity Log */}
                     <div className="space-y-6">
-                        <div className="flex items-center gap-3 px-6">
+                        <div className="flex items-center justify-between px-6">
                             <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">Engine Activity Log</h3>
-                            <div className="h-px flex-1 bg-white/5" />
+                            <div className="flex items-center gap-4">
+                                {/* Moved to header */}
+                            </div>
                         </div>
+                        <div className="h-px w-full bg-white/5 mt-2 mb-6" />
                         <ActivityLog />
                     </div>
 
@@ -637,16 +711,18 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-3 bg-slate-950/60 rounded-2xl border border-white/5 p-1 px-4 shadow-2xl">
-                                    <Target size={14} className="text-indigo-500" />
-                                    <input
-                                        type="text"
-                                        placeholder="SEARCH TACTICAL DATA..."
-                                        className="bg-transparent border-none py-2 text-[9px] font-black uppercase tracking-widest focus:ring-0 w-48 placeholder:text-slate-700 text-white"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
+                                <button
+                                    onClick={() => setIsFilterModalOpen(true)}
+                                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                        isFilterModalOpen 
+                                            ? 'bg-indigo-500 text-white shadow-[0_0_30px_rgba(99,102,241,0.4)]' 
+                                            : 'bg-slate-950/60 text-slate-400 border border-white/5 hover:border-indigo-500/30'
+                                    }`}
+                                >
+                                    <Sliders size={14} />
+                                    Filter Data
+                                </button>
+                                <div className="h-8 w-px bg-white/5 mx-2" />
                                 <button
                                     onClick={() => setIsTableMaximized(!isTableMaximized)}
                                     className="p-3 bg-slate-900 shadow-2xl border border-white/5 rounded-2xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2 group"
@@ -721,6 +797,14 @@ export default function SettingsPage() {
                         </button>
                     </div>
                 )}
+
+                <LeadFilters 
+                    isOpen={isFilterModalOpen}
+                    onClose={() => setIsFilterModalOpen(false)}
+                    filters={filters}
+                    setFilters={setFilters}
+                    availableCities={availableCities}
+                />
             </main>
         </div>
     );

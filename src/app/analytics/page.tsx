@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { ScrapeHistoryTable } from '@/components/ScrapeHistoryTable';
+import { LeadAnalysisTable } from '@/components/LeadAnalysisTable';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { TOOLTIP_CONTENT } from '@/lib/tooltip-content';
 import { Zap, ArrowRight, Clock, ExternalLink, MessageSquare, MapPin, Target } from 'lucide-react';
@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
         {
             label: 'Close Rate',
             tooltip: TOOLTIP_CONTENT.CLOSE_RATE,
-            value: ((leads.filter((l: any) => l.status === 'Bought').length / (leads.length || 1)) * 100).toFixed(1) + '%',
+            value: ((leads.filter((l: Lead) => l.status === 'Bought').length / (leads.length || 1)) * 100).toFixed(1) + '%',
             change: '0%',
             positive: true,
             icon: MessageSquare,
@@ -120,13 +120,47 @@ export default function AnalyticsPage() {
                     <div className="flex items-center justify-between px-4">
                         <div className="flex items-center gap-4">
                             <Clock className="text-indigo-500" size={24} />
-                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Strategic Pulse History</h2>
+                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Tactical Listing</h2>
                         </div>
                         <div className="flex items-center gap-5">
                             <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Retention: 30 Days</p>
                         </div>
                     </div>
-                    <ScrapeHistoryTable runs={runs} />
+                    <LeadAnalysisTable
+                        leads={leads}
+                        onStatusChange={async (id: string, status: Lead['status']) => {
+                            const { error } = await supabase.from('leads').update({ status }).eq('id', id);
+                            if (!error) setLeads(leads.map((l: Lead) => l.id === id ? { ...l, status } : l));
+                        }}
+                        onDelete={async (id: string) => {
+                            const { error } = await supabase.from('leads').delete().eq('id', id);
+                            if (!error) setLeads(leads.filter((l: Lead) => l.id !== id));
+                        }}
+                    />
+                </div>
+
+                {/* Strategic History Section */}
+                <div className="space-y-8 mb-24">
+                    <div className="flex items-center justify-between px-4">
+                        <div className="flex items-center gap-4">
+                            <Clock className="text-indigo-500" size={24} />
+                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Strategic Pulse History</h2>
+                        </div>
+                        <div className="flex items-center gap-5">
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">All Time Archive</p>
+                        </div>
+                    </div>
+                    <LeadAnalysisTable
+                        leads={leads}
+                        onStatusChange={async (id: string, status: Lead['status']) => {
+                            const { error } = await supabase.from('leads').update({ status }).eq('id', id);
+                            if (!error) setLeads(leads.map((l: Lead) => l.id === id ? { ...l, status } : l));
+                        }}
+                        onDelete={async (id: string) => {
+                            const { error } = await supabase.from('leads').delete().eq('id', id);
+                            if (!error) setLeads(leads.filter((l: Lead) => l.id !== id));
+                        }}
+                    />
                 </div>
 
                 {/* Bottom Insight */}

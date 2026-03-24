@@ -1,23 +1,22 @@
 # org: minhdo714
 service: pcb-scraper
 
-
+useDotenv: true
 provider:
   name: aws
-  region: us-east-1          # Change to region closest to your scrape targets (us-west-2 for CA/AZ)
-  architecture: x86_64
-  memorySize: 2048            # Chromium needs at least 1.5GB; 2GB gives headroom
-  timeout: 300                # 5-minute max per run
+  region: us-east-1
+  memorySize: 2048
+  timeout: 300
   profile: pcb-scraper
 
   environment:
-    PROXY_URL: ${env:PROXY_URL}                    # DataImpulse: http://user:pass@gw.dataimpulse.com:823
+    PROXY_URL: ${env:PROXY_URL}
     SUPABASE_URL: ${env:SUPABASE_URL}
-    SUPABASE_KEY: ${env:SUPABASE_SERVICE_KEY}       # Use service role key (bypasses RLS for upserts)
+    SUPABASE_KEY: ${env:SUPABASE_SERVICE_KEY}
 
   ecr:
     images:
-      scraper-image-v1:
+      scraper-image-v8:
         path: .
 
 # plugins:
@@ -26,7 +25,7 @@ provider:
 functions:
   scrape:
     image:
-      name: scraper-image-v1
+      name: scraper-image-v8
     events:
       - http:
           path: scrape

@@ -1,27 +1,33 @@
+
 import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
-import { join } from 'path';
+import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config({ path: join(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function checkRuns() {
+async function checkScrapeRuns() {
+    console.log('Fetching recent scrape runs...');
     const { data, error } = await supabase
         .from('scrape_runs')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(10);
 
     if (error) {
-        console.error('Error:', error.message);
-    } else {
-        console.log('Last 5 Scrape Runs:');
-        data.forEach(r => console.log(`- [${r.created_at}] Status: ${r.status} | Mode: ${r.mode} | Error: ${r.error_message}`));
+        console.error('Error fetching scrape runs:', error);
+        return;
     }
+
+    console.table(data.map(run => ({
+        id: run.id,
+        status: run.status,
+        created_at: run.created_at,
+        metadata: JSON.stringify(run.metadata || {}).slice(0, 50)
+    })));
 }
 
-checkRuns();
+checkScrapeRuns();

@@ -31,7 +31,7 @@ export default function LeadDetailPage() {
         if (!error) {
             setLead({ ...lead, status: newStatus } as Lead);
             if (newStatus === 'archived') {
-                router.push('/dashboard');
+                router.push('/settings');
             }
         }
         setUpdating(false);

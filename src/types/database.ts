@@ -65,17 +65,20 @@ export type Lead = {
     title: string;
     price: number | null;
     mileage: number | null;
+    year: number | null;
     vin: string | null;
     location: string | null;
     distance: number | null;
     url: string;
     photos: string[];
     post_time: string;
-    ai_margin_est: number | null;
+    ai_margin: number | null;
     ai_recon_est: number | null;
     ai_notes: string | null;
     status: 'New' | 'Contacted' | 'Negotiating' | 'Meeting Set' | 'Bought' | 'Dead';
     title_status: string | null;
+    is_clean_title: boolean;
+    city: string | null;
     dealer_id: string; // References Profile.id
     created_at: string;
 };

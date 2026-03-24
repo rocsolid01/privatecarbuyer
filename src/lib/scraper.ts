@@ -78,7 +78,7 @@ function getZipCoords(zip: string): { lat: number; lng: number } {
 // ─────────────────────────────────────────────────────────────────────────────
 // Main run trigger — replaces runScraper() from apify.ts
 // ─────────────────────────────────────────────────────────────────────────────
-export async function runScraper(settings: Settings, isDeepScrape = false, force = false) {
+export async function runScraper(settings: Settings, isDeepScrape = false) {
     const now = new Date();
     const LAMBDA_URL = typeof process !== 'undefined' ? process.env.LAMBDA_SCRAPER_URL : null;
 
@@ -86,94 +86,86 @@ export async function runScraper(settings: Settings, isDeepScrape = false, force
         throw new Error('LAMBDA_SCRAPER_URL is not configured. Add it to your .env file after deploying the Lambda.');
     }
 
-    // ── 1. Budget Guardrail ────────────────────────────────────────────────
-    const dailyBudget = settings.daily_budget_usd ?? 1.00;
-    let spentToday = settings.budget_spent_today ?? 0;
-    const lastReset = settings.last_budget_reset_at ? new Date(settings.last_budget_reset_at) : new Date(0);
-
-    const isNewDay =
-        now.getUTCDate()  !== lastReset.getUTCDate()  ||
-        now.getUTCMonth() !== lastReset.getUTCMonth() ||
-        now.getUTCFullYear() !== lastReset.getUTCFullYear();
-
-    if (isNewDay) {
-        console.log('[Budget] New day — resetting spend.');
-        spentToday = 0;
-        await adminSupabase.from('settings').update({
-            budget_spent_today: 0,
-            last_budget_reset_at: now.toISOString(),
-        }).eq('id', settings.id);
-    }
-
-    if (spentToday >= dailyBudget && !force) {
-        console.warn(`[Budget] Daily limit reached ($${spentToday}/$${dailyBudget}). Skipping.`);
-        return {
-            success: false,
-            reason: 'budget-exceeded',
-            wait: 1440 - (now.getUTCHours() * 60 + now.getUTCMinutes()),
-        };
-    }
-
-    // ── 2. Smart Sleep ─────────────────────────────────────────────────────
+    // ── 1. Smart Sleep Guard ──────────────────────────────────────────────
     const currentHour = now.getHours();
-    const activeStart = settings.active_hour_start ?? 7;
-    const activeEnd   = settings.active_hour_end   ?? 22;
+    const startHour = settings.active_hour_start ?? 0;
+    const endHour = settings.active_hour_end ?? 24;
 
-    if ((currentHour < activeStart || currentHour >= activeEnd) && !force) {
-        console.log(`[Smart Sleep] Night mode (${activeEnd}h–${activeStart}h). Skipping.`);
-        return {
-            success: false,
-            reason: 'sleeping',
-            wait: (currentHour < activeStart
-                ? (activeStart - currentHour)
-                : (24 - currentHour + activeStart)) * 60 - now.getMinutes(),
-        };
+    if (currentHour < startHour || currentHour >= endHour) {
+        console.log(`[Tiered Sniper] 💤 SYSTEM SLEEP (Active: ${startHour}:00 - ${endHour}:00 | Current: ${currentHour}:00)`);
+        return { success: true, message: 'System is currently in scheduled sleep mode.' };
     }
 
-    // ── 3. Cooldown ────────────────────────────────────────────────────────
-    const pulseInterval = settings.pulse_interval ?? 15;
-    const lastRun = settings.last_pulse_at ? new Date(settings.last_pulse_at) : new Date(0);
-    const diffMins = (now.getTime() - lastRun.getTime()) / (1000 * 60);
+    // ── 2. Budget Guardrail ───────────────────────────────────────────────
+    const dailyBudget = settings.daily_budget_usd ?? 1.0;
+    const spentToday = settings.budget_spent_today ?? 0;
 
-    // Bypass cooldown for testing
-    if (false && diffMins < pulseInterval && !force) {
-        const remaining = Math.ceil(pulseInterval - diffMins);
-        console.warn(`[Cooldown] Next pulse in ${remaining} mins.`);
-        return { success: false, reason: 'cooldown', wait: remaining };
+    if (spentToday >= dailyBudget) {
+        console.log(`[Tiered Sniper] 🛑 BUDGET LIMIT REACHED ($${spentToday} >= $${dailyBudget})`);
+        return { success: true, message: 'Daily budget limit reached.' };
     }
 
-    // ── 4. Tiered City Selection ───────────────────────────────────────────
+    // ── Tiered City Selection ─────────────────────────────────────────────
     const homeCoords  = getZipCoords(settings.zip || '90001');
     const radiusMiles = settings.radius ?? 200;
 
-    const allCities = Object.entries(CITY_COORDS)
-        .filter(([name]) => name !== 'default')
-        .map(([name, coords]) => ({
+    // Base pool: Start with user's manual locations, or fall back to geographic radius
+    let cityPool = (settings.locations && settings.locations.length > 0)
+        ? settings.locations.map(name => ({
             name,
-            distance: calculateDistance(homeCoords.lat, homeCoords.lng, coords.lat, coords.lng),
-        }))
-        .filter(c => c.distance <= radiusMiles)
-        .sort((a, b) => a.distance - b.distance);
+            distance: CITY_COORDS[name]?.lat 
+                ? calculateDistance(homeCoords.lat, homeCoords.lng, CITY_COORDS[name].lat, CITY_COORDS[name].lng)
+                : 0
+          }))
+        : Object.entries(CITY_COORDS)
+            .filter(([name]) => name !== 'default')
+            .map(([name, coords]) => ({
+                name,
+                distance: calculateDistance(homeCoords.lat, homeCoords.lng, coords.lat, coords.lng),
+            }))
+            .filter(c => c.distance <= radiusMiles);
 
-    if (allCities.length === 0) allCities.push({ name: 'losangeles', distance: 0 });
+    if (cityPool.length === 0) cityPool.push({ name: 'losangeles', distance: 0 });
+    
+    const allCities = [...cityPool].sort((a, b) => a.distance - b.distance);
 
-    const hotZoneSize  = 15;
-    const hotZone      = allCities.slice(0, hotZoneSize).map(c => c.name);
-    const farSweep     = allCities.slice(hotZoneSize).map(c => c.name);
+    // -- Anchored Rotation Strategy --
+    // 1. "Anchored" = 2 closest cities (strictly locked for every pulse)
+    // 2. "Hot Zone"  = Next 13 closest cities (rotating)
+    // 3. "Far Sweep" = Rest of the radius (rotating every 10 pulses)
+    
+    const anchoredCount = 2;
+    const anchored      = allCities.slice(0, anchoredCount).map(c => c.name);
+    
+    const hotZoneSize   = 15;
+    const hotZone       = allCities.slice(0, hotZoneSize).map(c => c.name);
+    const farSweep      = allCities.slice(hotZoneSize).map(c => c.name);
 
-    const timeIndex    = Math.floor(Date.now() / (pulseInterval * 60 * 1000));
-    const isFarSweep   = timeIndex % 20 === 0; // Far sweep every ~5 hrs
-    const batchSize    = settings.batch_size ?? 5;
-    const currentPool  = (isFarSweep && farSweep.length > 0) ? farSweep : hotZone;
-    const startIndex   = (timeIndex * batchSize) % currentPool.length;
+    const SESSION_INTERVAL_MINS = 30; // cron-job.org fires every 30 minutes
+    const timeIndex     = Math.floor(Date.now() / (SESSION_INTERVAL_MINS * 60 * 1000));
+    const isFarSweep    = timeIndex % 20 === 0; // Far sweep every ~10 hours
+    const batchSize     = settings.batch_size ?? 5;
+    
+    // Determine the rotating pool (Far Sweep or the remainder of the Hot Zone)
+    const rotatingPool  = (isFarSweep && farSweep.length > 0) 
+        ? farSweep 
+        : hotZone.filter(name => !anchored.includes(name));
 
-    const cities: string[] = [];
-    for (let i = 0; i < batchSize; i++) {
-        cities.push(currentPool[(startIndex + i) % currentPool.length]);
+    const rotatingBatchSize = Math.max(0, batchSize - anchored.length);
+    const startIndex        = (timeIndex * rotatingBatchSize) % (rotatingPool.length || 1);
+
+    const rotating: string[] = [];
+    if (rotatingPool.length > 0) {
+        for (let i = 0; i < rotatingBatchSize; i++) {
+            rotating.push(rotatingPool[(startIndex + i) % rotatingPool.length]);
+        }
     }
 
-    const mode = isFarSweep ? 'FAR SWEEP' : 'HOT ZONE';
-    console.log(`[Tiered Sniper] ${mode} → [${cities.join(', ')}]`);
+    // Final set: Always prepend anchored cities (up to batchSize) then fill with rotating
+    const cities = [...anchored.slice(0, batchSize), ...rotating].slice(0, batchSize);
+
+    const mode = isFarSweep ? 'FAR SWEEP' : 'HOT ZONE (ANCHORED)';
+    console.log(`[Tiered Sniper] ${mode} → [${cities.join(', ')}] (Anchored: ${anchored.join(', ')})`);
 
     // ── 5. Log Scrape Run Record ───────────────────────────────────────────
     let runId: string | null = null;
@@ -191,16 +183,24 @@ export async function runScraper(settings: Settings, isDeepScrape = false, force
         if (error) throw error;
         if (run) runId = run.id;
 
-        await adminSupabase
-            .from('settings')
-            .update({ last_pulse_at: now.toISOString() })
-            .eq('id', settings.id);
+        // Update last_pulse_at - wrapped in its own try-catch to prevent trigger failure
+        try {
+            await adminSupabase
+                .from('settings')
+                .update({ last_pulse_at: now.toISOString() })
+                .eq('id', settings.id);
+        } catch (updateErr: any) {
+            console.error('[Settings Update] Failed to update last_pulse_at:', updateErr.message);
+        }
     } catch (err: any) {
         console.error('[Run Log] Failed to create scrape_run record:', err);
     }
 
-    // ── 6. Trigger Lambda (fire-and-forget) ───────────────────────────────
+    // ── 6. Trigger Lambda ───────────────────────────────────────────────
+    // We remove the IIFE and AWAIT the trigger to ensure Vercel doesn't kill the task.
+    // The Lambda handles its own status updates to 'Running' and 'Success'.
     const lambdaPayload = {
+        run_id:      runId,
         mode:        isFarSweep ? 'far_sweep' : 'pulse',
         dealer_id:   settings.id,
         cities,
@@ -214,69 +214,50 @@ export async function runScraper(settings: Settings, isDeepScrape = false, force
         post_age_max: settings.post_age_max || 24,
         exclude_salvage: settings.exclude_salvage || false,
         posted_today: isDeepScrape ? false : true,
-        max_items:   Math.min(500, (settings.max_items_per_city || 100) * cities.length),
+        max_items:   Math.min(500, settings.max_items_per_city || 25),
     };
 
-    // Fire-and-forget — Lambda runs async, result tracked via Supabase directly
-    (async () => {
+    try {
+        console.log(`[Lambda] Triggering production AI Engine for cities: [${cities.join(', ')}]`);
+        const response = await fetch(LAMBDA_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(lambdaPayload),
+        });
+
+        if (!response.ok && response.status !== 504) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+
+        if (response.status === 504) {
+            console.log('[Lambda] Triggered successfully (Connection timed out, but Lambda is continuing in background).');
+        } else {
+            console.log('[Lambda] Scrape triggered and responded successfully.');
+        }
+
+        // Budget tracking
         try {
-            const fs = require('fs');
-            const path = require('path');
-            const { exec } = require('child_process');
-            
-            const payloadPath = path.join(process.cwd(), 'scripts', 'temp_payload.json');
-            fs.writeFileSync(payloadPath, JSON.stringify(lambdaPayload));
-
-            console.log("Triggering local Python DataImpulse crawler...");
-            
-            // Execute the local python script using the local env
-            exec('.\\lambda-scraper-env\\Scripts\\python scripts\\run-datapulse-local.py', { cwd: process.cwd() }, async (err: any, stdout: any, stderr: any) => {
-                if (stdout) console.log('[Python Out]', stdout);
-                if (stderr) console.error('[Python Err]', stderr);
-                
-                // For this test, assume it succeeded if no massive error
-                if (err) {
-                    console.error('[Lambda] Trigger failed:', err.message);
-                    if (runId) {
-                        await adminSupabase.from('scrape_runs').update({
-                            status: 'Error',
-                            error_message: err.message,
-                            finished_at: new Date().toISOString(),
-                        }).eq('id', runId);
-                    }
-                    return;
-                }
-                
-                console.log(`[Lambda] Scrape complete locally.`);
-                if (runId) {
-                    await adminSupabase.from('scrape_runs').update({
-                        status: 'Success',
-                        leads_found: 10, // hardcoded rough estimate for local test
-                        finished_at: new Date().toISOString(),
-                    }).eq('id', runId);
-                }
-            });
-
-            // Budget tracking: Lambda is cheaper than Apify, estimate ~$0.001 per run
-            // (Lambda invocation cost + DataImpulse bandwidth — update when you have actuals)
             const estimatedCost = 0.001;
             const { data: latest } = await adminSupabase
                 .from('settings').select('budget_spent_today').eq('id', settings.id).single();
             await adminSupabase.from('settings').update({
                 budget_spent_today: (latest?.budget_spent_today || 0) + estimatedCost,
             }).eq('id', settings.id);
-
-        } catch (err: any) {
-            console.error('[Lambda] Trigger failed:', err.message);
-            if (runId) {
-                await adminSupabase.from('scrape_runs').update({
-                    status: 'Error',
-                    error_message: err.message,
-                    finished_at: new Date().toISOString(),
-                }).eq('id', runId);
-            }
+        } catch (budgetErr: any) {
+            console.error('[Budget Update] Failed to update budget:', budgetErr.message);
         }
-    })();
+
+    } catch (err: any) {
+        console.error('[Lambda] Cloud trigger failed:', err.message);
+        if (runId) {
+            await adminSupabase.from('scrape_runs').update({
+                status: 'Error',
+                error_message: err.message,
+                finished_at: new Date().toISOString(),
+            }).eq('id', runId);
+        }
+    }
 
     return {
         success: true,

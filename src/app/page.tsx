@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Car, Zap, Target, ArrowRight, Phone, Monitor } from 'lucide-react';
+import { Car, Zap, Target, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -24,8 +24,8 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-6">
             <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-indigo-400 transition-colors">Log In</Link>
-            <Link href="/dashboard" className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 transition-all hover:scale-105">
-              Access Feed
+            <Link href="/settings" className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 transition-all hover:scale-105">
+              Access Control Center
             </Link>
           </div>
         </div>
@@ -48,8 +48,8 @@ export default function LandingPage() {
               The automated vehicle acquisition platform for elite dealers. Using AI to find 20%+ margin deals and send personalized SMS before your competitors even wake up.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-20">
-              <Link href="/dashboard" className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-5 rounded-2xl font-black text-lg shadow-2xl shadow-indigo-500/40 flex items-center justify-center gap-3 hover:scale-105 transition-all">
-                Access Dashboard <ArrowRight size={20} />
+              <Link href="/settings" className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-5 rounded-2xl font-black text-lg shadow-2xl shadow-indigo-500/40 flex items-center justify-center gap-3 hover:scale-105 transition-all">
+                Access Control Center <ArrowRight size={20} />
               </Link>
               <a href="#how-it-works" className="w-full sm:w-auto glass-card px-10 py-5 rounded-2xl font-black text-lg text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2">
                 The Engine
@@ -64,7 +64,7 @@ export default function LandingPage() {
                   <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none" />
                   <div className="text-center relative z-10">
                     <div className="mb-6 inline-block bg-indigo-500/20 p-6 rounded-full">
-                      <Phone size={64} className="text-indigo-400" />
+                      <Target size={64} className="text-indigo-400" />
                     </div>
                     <div>LIVE SNIPER FEED ACTIVE</div>
                   </div>
@@ -105,7 +105,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 group hover:border-blue-500 transition-all duration-500">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-8 group-hover:scale-110 transition-transform">
-                <Monitor size={32} />
+                <Target size={32} />
               </div>
               <h4 className="text-2xl font-black dark:text-white mb-4">Hyper-Scraper 4.0</h4>
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -123,7 +123,7 @@ export default function LandingPage() {
             </div>
             <div className="p-8 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 group hover:border-purple-500 transition-all duration-500">
               <div className="w-16 h-16 bg-purple-100 dark:bg-purple-600/20 rounded-2xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-8 group-hover:scale-110 transition-transform">
-                <Phone size={32} />
+                <Target size={32} />
               </div>
               <h4 className="text-2xl font-black dark:text-white mb-4">Automated Outreach</h4>
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -142,7 +142,7 @@ export default function LandingPage() {
             <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-xl mx-auto">
               Join 500+ dealerships using AI to secure high-margin private party inventory before it hits the retail market.
             </p>
-            <Link href="/dashboard" className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl font-black text-xl shadow-2xl shadow-blue-500/40 transition-all hover:scale-105 inline-block">
+            <Link href="/settings" className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl font-black text-xl shadow-2xl shadow-blue-500/40 transition-all hover:scale-105 inline-block">
               Get Started for Free
             </Link>
           </div>
