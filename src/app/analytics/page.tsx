@@ -146,13 +146,13 @@ export default function AnalyticsPage() {
                     
                     <LeadAnalysisTable 
                         leads={leads}
-                        onStatusChange={async (id, status) => {
+                        onStatusChange={async (id: string, status: Lead['status']) => {
                             const { error } = await supabase.from('leads').update({ status }).eq('id', id);
-                            if (!error) setLeads(leads.map(l => l.id === id ? { ...l, status } : l));
+                            if (!error) setLeads(leads.map((l: Lead) => l.id === id ? { ...l, status } : l));
                         }}
-                        onDelete={async (id) => {
+                        onDelete={async (id: string) => {
                             const { error } = await supabase.from('leads').delete().eq('id', id);
-                            if (!error) setLeads(leads.filter(l => l.id !== id));
+                            if (!error) setLeads(leads.filter((l: Lead) => l.id !== id));
                         }}
                     />
                 </div>
@@ -170,13 +170,13 @@ export default function AnalyticsPage() {
                     
                     <LeadAnalysisTable 
                         leads={leads}
-                        onStatusChange={async (id, status) => {
+                        onStatusChange={async (id: string, status: Lead['status']) => {
                             const { error } = await supabase.from('leads').update({ status }).eq('id', id);
-                            if (!error) setLeads(leads.map(l => l.id === id ? { ...l, status } : l));
+                            if (!error) setLeads(leads.map((l: Lead) => l.id === id ? { ...l, status } : l));
                         }}
-                        onDelete={async (id) => {
+                        onDelete={async (id: string) => {
                             const { error } = await supabase.from('leads').delete().eq('id', id);
-                            if (!error) setLeads(leads.filter(l => l.id !== id));
+                            if (!error) setLeads(leads.filter((l: Lead) => l.id !== id));
                         }}
                     />
                 </div>
