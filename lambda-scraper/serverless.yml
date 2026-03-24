@@ -5,6 +5,7 @@ useDotenv: true
 provider:
   name: aws
   region: us-east-1
+  architecture: x86_64
   memorySize: 2048
   timeout: 300
   profile: pcb-scraper
@@ -30,22 +31,3 @@ functions:
       - http:
           path: scrape
           method: post
-          cors:
-            origin: "*"        # Restrict to your Vercel domain in production
-            headers:
-              - Content-Type
-              - X-Scraper-Secret
-          private: false
-
-# ─────────────────────────────────────────────────────────────────────────────
-# DEPLOYMENT STEPS (run from lambda-scraper/ directory):
-#
-# 1. Install Serverless:   npm install -g serverless
-# 2. Configure AWS creds:  serverless config credentials --provider aws --key KEY --secret SECRET
-# 3. Set env vars in shell:
-#      export PROXY_URL="http://user:pass@gate.dc.dataimpulse.com:823"
-#      export SUPABASE_URL="https://xxxx.supabase.co"
-#      export SUPABASE_SERVICE_KEY="eyJ..."
-# 4. Deploy:               serverless deploy
-# 5. Copy the API Gateway URL into your Vercel .env as LAMBDA_SCRAPER_URL
-# ─────────────────────────────────────────────────────────────────────────────

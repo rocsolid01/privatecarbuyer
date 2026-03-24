@@ -138,7 +138,7 @@ def _extract_mileage_from_meta(text: str) -> Optional[int]:
     
     # regex matches: numbers followed by 'k' (optional) and 'mi' or 'miles'
     # Support commas in the number
-    pattern = r'([\d\.,]+k?)\s*(?:mi|miles?)'
+    pattern = r'([d.,]+k?)s*(?:mi|miles?)'
     
     for match in re.finditer(pattern, text, re.IGNORECASE):
         val_str = match.group(1).lower()
@@ -175,7 +175,7 @@ def _extract_mileage_from_meta(text: str) -> Optional[int]:
 def _extract_pid(url: str) -> Optional[str]:
     """Extract Craigslist post ID (PID) from a listing URL."""
     # URL pattern: https://city.craigslist.org/cto/d/title/7654321234.html
-    match = re.search(r"/(\d{10,13})\.html", url)
+    match = re.search(r"/(d{10,13}).html", url)
     return match.group(1) if match else url  # Fall back to full URL if no PID
 
 
@@ -336,7 +336,6 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
             a_tag = await item.query_selector("a")
             if a_tag:
                  url = await a_tag.get_attribute("href")
-
         if not url: 
             log_warn(f"[{city}] Missing URL for title: {title}")
             return None
