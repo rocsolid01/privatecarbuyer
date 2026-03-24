@@ -86,9 +86,9 @@ export default function AnalyticsPage() {
         <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-indigo-500/30">
             <Navbar />
             
-            <main className="max-w-7xl mx-auto px-6 lg:px-12 py-12">
+            <main className="max-w-7xl mx-auto px-6 lg:px-12 py-8">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                     <div className="space-y-2">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-8 bg-indigo-600 rounded-full" />
@@ -96,31 +96,31 @@ export default function AnalyticsPage() {
                                 Strategic <span className="text-indigo-500">Intelligence</span>
                             </h1>
                         </div>
-                        <p className="text-slate-500 font-black uppercase text-[10px] tracking-[0.3em] italic ml-5">
+                        <p className="text-slate-500 font-black uppercase text-xs tracking-[0.2em] italic ml-5">
                             Engine Performance Metrics & ROI
                         </p>
                     </div>
                 </div>
 
                 {/* Top Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     {stats.map((stat, i) => (
                         <div 
                             key={i} 
-                            className="glass-card bg-slate-900/40 p-8 rounded-[2.5rem] border border-white/5 transition-all hover:border-indigo-500/30 group relative overflow-hidden"
+                            className="glass-card bg-slate-900/40 p-6 rounded-3xl border border-white/5 transition-all hover:border-indigo-500/30 group relative overflow-hidden"
                         >
-                            <div className="flex justify-between items-start mb-6">
-                                <div className={'p-4 rounded-2xl bg-slate-950 border border-white/5 ' + stat.color + ' group-hover:scale-110 transition-transform duration-500'}>
-                                    <stat.icon size={24} />
+                            <div className="flex justify-between items-start mb-4">
+                                <div className={'p-3 rounded-2xl bg-slate-950 border border-white/5 ' + stat.color + ' group-hover:scale-110 transition-transform duration-500'}>
+                                    <stat.icon size={20} />
                                 </div>
-                                <div className={'flex items-center gap-1 text-[10px] font-black italic ' + (stat.positive ? 'text-emerald-500' : 'text-red-500')}>
+                                <div className={'flex items-center gap-1 text-xs font-black italic ' + (stat.positive ? 'text-emerald-500' : 'text-red-500')}>
                                     <ArrowRight size={14} className={stat.positive ? "" : "rotate-90"} />
                                     {stat.change}
                                 </div>
                             </div>
                             
-                            <div className="flex items-center gap-2 mb-2 leading-none">
-                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">{stat.label}</h3>
+                            <div className="flex items-center gap-2 mb-1 leading-none">
+                                <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest italic">{stat.label}</h3>
                                 <InfoTooltip content={stat.tooltip} />
                             </div>
                             
@@ -134,36 +134,12 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Tactical Listing Table Section */}
-                <div className="space-y-8 mb-24">
+                <div className="space-y-6 mb-12">
                     <div className="flex items-center justify-between px-4">
                         <div className="flex items-center gap-4">
                             <Target className="text-indigo-500" size={24} />
                             <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">
                                 Tactical Listing
-                            </h2>
-                        </div>
-                    </div>
-                    
-                    <LeadAnalysisTable 
-                        leads={leads}
-                        onStatusChange={async (id: string, status: Lead['status']) => {
-                            const { error } = await supabase.from('leads').update({ status }).eq('id', id);
-                            if (!error) setLeads(leads.map((l: Lead) => l.id === id ? { ...l, status } : l));
-                        }}
-                        onDelete={async (id: string) => {
-                            const { error } = await supabase.from('leads').delete().eq('id', id);
-                            if (!error) setLeads(leads.filter((l: Lead) => l.id !== id));
-                        }}
-                    />
-                </div>
-
-                                {/* Strategic History Section */}
-                <div className="space-y-8 mb-24">
-                    <div className="flex items-center justify-between px-4">
-                        <div className="flex items-center gap-4">
-                            <Clock className="text-indigo-500" size={24} />
-                            <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">
-                                Strategic Pulse History
                             </h2>
                         </div>
                     </div>
