@@ -69,7 +69,7 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
 
     const SortHeader = ({ label, sortKey, align = 'left', width }: { label: string, sortKey: SortConfig['key'], align?: 'left' | 'center' | 'right', width?: string }) => (
         <th
-            className={`p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic cursor-pointer hover:text-indigo-400 transition-colors ${align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : ''} ${width || ''}`}
+            className={`p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap cursor-pointer hover:text-indigo-400 transition-colors ${align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : ''} ${width || ''}`}
             onClick={() => requestSort(sortKey)}
         >
             <div className={`flex items-center gap-1 ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : ''}`}>
@@ -99,16 +99,16 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     className="w-4 h-4 rounded border-white/10 bg-slate-900 checked:bg-indigo-500 transition-all cursor-pointer accent-indigo-500"
                                 />
                             </th>
-                            <th className="w-[26%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">Target Ident</th>
-                            <th className="w-[20%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">AI Intelligence</th>
+                            <th className="w-[26%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Target Ident</th>
+                            <th className="w-[20%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">AI Intelligence</th>
                             <SortHeader label="Year" sortKey="post_year" width="w-[8%]" />
                             <SortHeader label="City" sortKey="city" width="w-[8%]" />
                             <SortHeader label="Mileage" sortKey="mileage" width="w-[10%]" />
                             <SortHeader label="Status" sortKey="title_status" width="w-[8%]" />
-                            <th className="w-[10%] p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic">Posted</th>
+                            <th className="w-[10%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Posted</th>
                             <SortHeader label="Protocol" sortKey="status" width="w-[10%]" />
                             <SortHeader label="Scrape Time" sortKey="created_at" width="w-[12%]" />
-                            <th className="p-3 py-5 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap italic text-right pr-8 w-[10%]">Intercept</th>
+                            <th className="p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap text-right pr-8 w-[10%]">Intercept</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -136,12 +136,12 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                                 href={lead.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="font-black text-white hover:text-indigo-400 italic uppercase tracking-tighter truncate block transition-colors leading-none mb-1 group/link"
+                                                className="font-bold text-white hover:text-indigo-400 uppercase tracking-tighter truncate block transition-colors leading-none mb-1 group/link"
                                             >
                                                 {lead.title}
                                                 <ExternalLink size={8} className="inline ml-1 opacity-0 group-hover/link:opacity-100 transition-opacity" />
                                             </a>
-                                            <div className="flex items-center gap-1 text-[7px] text-slate-500 font-black uppercase tracking-widest italic">
+                                            <div className="flex items-center gap-1 text-[7px] text-slate-500 font-bold uppercase tracking-widest">
                                                 <MapPin size={8} className="text-indigo-500" />
                                                 <span className="truncate">{lead.location}</span>
                                             </div>
@@ -152,14 +152,14 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     <div className="flex items-center gap-2 mb-1">
                                         <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-md">
                                             <TrendingUp size={10} className="text-indigo-400" />
-                                            <span className="text-[9px] font-black text-indigo-400 uppercase italic tracking-widest">
+                                            <span className="text-[9px] font-bold text-indigo-400 uppercase italic tracking-widest">
                                                 ${lead.ai_margin?.toLocaleString() || '0'}
                                             </span>
                                         </div>
                                         {lead.ai_recon_est && lead.ai_recon_est > 0 && (
                                             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
                                                 <div className="w-1 h-1 bg-red-500 rounded-full" />
-                                                <span className="text-[8px] font-black text-red-400 uppercase italic tracking-widest">Recon Exp</span>
+                                                <span className="text-[8px] font-bold text-red-400 uppercase italic tracking-widest">Recon Exp</span>
                                             </div>
                                         )}
                                     </div>
@@ -169,7 +169,7 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                         </p>
                                     </div>
                                 </td>
-                                <td className="p-3 font-black text-slate-300 italic tracking-tighter">
+                                <td className="p-3 font-bold text-slate-300 italic tracking-tighter">
                                     {lead.year || lead.title.match(/\b(19|20)\d{2}\b/)?.[0] || '---'}
                                 </td>
                                 <td className="p-3">
@@ -178,7 +178,7 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                         <span className="truncate">{lead.city || lead.location || 'N/A'}</span>
                                     </div>
                                 </td>
-                                <td className="p-3 font-black text-slate-300 italic tracking-tighter">
+                                <td className="p-3 font-bold text-slate-300 italic tracking-tighter">
                                     {lead.mileage?.toLocaleString()} <span className="text-[7px] text-slate-600">MI</span>
                                 </td>
                                 <td className="p-3">
