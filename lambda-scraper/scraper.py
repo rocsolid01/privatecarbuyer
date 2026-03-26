@@ -138,7 +138,7 @@ def _extract_mileage_from_meta(text: str) -> Optional[int]:
     
     # regex matches: numbers followed by 'k' (optional) and 'mi' or 'miles'
     # Support commas in the number
-    pattern = r'([d.,]+k?)s*(?:mi|miles?)'
+    pattern = r'([\d.,]+k?)\s*(?:mi|miles?)'
     
     for match in re.finditer(pattern, text, re.IGNORECASE):
         val_str = match.group(1).lower()
