@@ -7,9 +7,9 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { ActivityLog } from '@/components/ActivityLog';
 import { LeadAnalysisTable } from '@/components/LeadAnalysisTable';
 import { TOOLTIP_CONTENT } from '@/lib/tooltip-content';
-import { Lead } from '@/types/database';
+import { Lead, Settings, SavedConfig } from '@/types/database';
 // @ts-ignore
-import { Save, MapPin, Target, Bell, Zap, MessageSquare, ExternalLink, CheckCircle2, Clock, Play, Loader2, Archive, Send, Maximize2, Minimize2, X, Sliders, Timer } from 'lucide-react';
+import { Save, MapPin, Target, Bell, Zap, MessageSquare, ExternalLink, CheckCircle2, Clock, Play, Loader2, Archive, Send, Maximize2, Minimize2, X, Sliders, Timer, Download, Trash2, Plus, RotateCcw, Search, ChevronRight, Check, Filter, Settings as SettingsIcon } from 'lucide-react';
 import { LeadFilters, DealershipFilters } from '@/components/LeadFilters';
 
 export default function SettingsPage() {
@@ -17,15 +17,20 @@ export default function SettingsPage() {
     const [saving, setSaving] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [engineStatus, setEngineStatus] = useState('Checking' as 'Checking' | 'Online' | 'Offline' | 'Stalled');
-    const [error, setError] = useState(null as string | null);
-    const [success, setSuccess] = useState(null as string | null);
+    const [success, setSuccess] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    
+    // Config Management State
+    const [savedConfigs, setSavedConfigs] = useState<SavedConfig[]>([]);
+    const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
+    const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+    const [newConfigName, setNewConfigName] = useState('');
 
     // Lead Management State (Cloned from Dashboard)
     const [leads, setLeads] = useState([] as any[]);
-    const [selectedLeads, setSelectedLeads] = useState(new Set<string>() as any);
+    const [selectedLeads, setSelectedLeads] = useState(new Set<string>());
     const [bulkUpdating, setBulkUpdating] = useState(false);
-    const [lastUpdated, setLastUpdated] = useState(new Date() as any);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [lastUpdated, setLastUpdated] = useState(new Date());
     const [isTableMaximized, setIsTableMaximized] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filters, setFilters] = useState({
@@ -39,13 +44,18 @@ export default function SettingsPage() {
         minMargin: '',
         status: '',
         titleStatus: '',
-    } as any);
+        maxDaysOld: '',
+    });
+    
     const [settings, setSettings] = useState({
+        id: '00000000-0000-0000-0000-000000000000',
         location: 'Los Angeles, CA',
         zip: '90001',
         radius: 200,
         locations: ['losangeles', 'orangecounty', 'phoenix'],
         makes: ['Toyota', 'Lexus', 'Honda', 'Subaru', 'Mazda'],
+        models: [],
+        keywords: [],
         year_min: 2019,
         year_max: 2023,
         mileage_max: 100000,
@@ -57,7 +67,6 @@ export default function SettingsPage() {
         post_age_max: 1,
         margin_min: 1500,
         sms_numbers: ['+15551234567'],
-        // New Dealership Fields
         pulse_interval: 15,
         max_items_per_city: 25,
         unicorn_threshold: 4000,
@@ -83,12 +92,13 @@ export default function SettingsPage() {
         daily_budget_usd: 1.00,
         budget_spent_today: 0.00,
         exclude_salvage: true,
-        auto_scan_enabled: true
-    });
+        auto_scan_enabled: true,
+        consecutive_empty_runs: 0
+    } as any);
 
     const fetchSettings = async () => {
         setLoading(true);
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from('settings')
             .select('*')
             .single();
@@ -104,6 +114,53 @@ export default function SettingsPage() {
                 exclude_salvage: data.exclude_salvage ?? settings.exclude_salvage, 
                 auto_scan_enabled: data.auto_scan_enabled ?? settings.auto_scan_enabled, 
             });
+        }
+    };
+
+    const fetchSavedConfigs = async () => {
+        const { data } = await supabase
+            .from('saved_configs')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (data) setSavedConfigs(data);
+    };
+
+    const handleSaveAsNew = async () => {
+        if (!newConfigName.trim()) return;
+        setSaving(true);
+        const { error } = await supabase
+            .from('saved_configs')
+            .insert({
+                name: newConfigName,
+                config: settings,
+                dealer_id: '00000000-0000-0000-0000-000000000000'
+            });
+
+        if (!error) {
+            setSuccess(`Config "${newConfigName}" saved!`);
+            setNewConfigName('');
+            setIsSaveModalOpen(false);
+            fetchSavedConfigs();
+            setTimeout(() => setSuccess(null), 3000);
+        } else {
+            setError('Error saving config: ' + error.message);
+        }
+        setSaving(false);
+    };
+
+    const handleLoadConfig = (config: Partial<Settings>) => {
+        setSettings({ ...settings, ...config });
+        setIsLoadModalOpen(false);
+        setSuccess('Configuration loaded!');
+        setTimeout(() => setSuccess(null), 3000);
+    };
+
+    const handleDeleteConfig = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        if (!confirm('Delete this saved configuration?')) return;
+        const { error } = await supabase.from('saved_configs').delete().eq('id', id);
+        if (!error) {
+            setSavedConfigs((prev: SavedConfig[]) => prev.filter((c: SavedConfig) => c.id !== id));
         }
     };
 
@@ -164,7 +221,7 @@ export default function SettingsPage() {
     };
 
     useEffect(() => {
-        Promise.all([fetchSettings(), fetchLeads()]).then(() => setLoading(false));
+        Promise.all([fetchSettings(), fetchLeads(), fetchSavedConfigs()]).then(() => setLoading(false));
 
         const channel = supabase
             .channel('settings-leads')
@@ -250,9 +307,14 @@ export default function SettingsPage() {
             const matchesTitle = !filters.titleStatus || 
                 (filters.titleStatus === 'Clean' ? l.is_clean_title : !l.is_clean_title);
 
+            // Age Filter (Days Old)
+            const postDate = l.post_time ? new Date(l.post_time) : null;
+            const diffDays = postDate ? (new Date().getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24) : 999;
+            const matchesAge = !filters.maxDaysOld || (diffDays <= parseInt(filters.maxDaysOld));
+
             return matchesSearch && matchesCity && matchesMinYear && matchesMaxYear && 
                    matchesMinPrice && matchesMaxPrice && matchesMileage && matchesMargin && 
-                   matchesStatus && matchesTitle;
+                   matchesStatus && matchesTitle && matchesAge;
         });
     }, [leads, filters]);
 
@@ -429,32 +491,25 @@ export default function SettingsPage() {
                                     Manual Scan
                                 </button>
                             )}
+
+                            <div className="h-10 w-px bg-white/5 mx-2 hidden md:block" />
+
+                            <button
+                                onClick={() => setIsLoadModalOpen(true)}
+                                className="bg-slate-900 border border-white/10 hover:border-indigo-500/30 text-slate-300 hover:text-white px-6 py-4 rounded-[2rem] font-bold flex items-center gap-2 transition-all active:scale-95 uppercase tracking-[0.2em] text-[10px]"
+                            >
+                                <Download size={14} />
+                                Load Config
+                            </button>
+
+                            <button
+                                onClick={() => setIsSaveModalOpen(true)}
+                                className="bg-slate-900 border border-white/10 hover:border-emerald-500/30 text-slate-300 hover:text-white px-6 py-4 rounded-[2rem] font-bold flex items-center gap-2 transition-all active:scale-95 uppercase tracking-[0.2em] text-[10px]"
+                            >
+                                <Save size={14} />
+                                Save Template
+                            </button>
                         </div>
-
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4">
-                        <button
-                            onClick={resetToOptimalDefaults}
-                            className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-xs border border-white/5 bg-white/5 hover:bg-white/10"
-                        >
-                            Reset Logic
-                        </button>
-                        <button
-                            onClick={fetchSettings}
-                            className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-xs border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
-                        >
-                            <Clock size={12} />
-                            Load Config
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:text-slate-400 transition-all uppercase tracking-[0.2em] text-xs border border-white/5 bg-white/5 hover:bg-white/10 flex items-center gap-2"
-                        >
-                            <Save size={12} />
-                            {saving ? 'Syncing...' : 'Save Changes'}
-                        </button>
-
                     </div>
                 </div>
 
@@ -600,34 +655,63 @@ export default function SettingsPage() {
                                     <span className="text-xs font-bold text-indigo-300 uppercase tracking-widest">30-Minute Cycle Enabled</span>
                                 </div>
                             </div>
-                            <div className="flex gap-10">
-                                <div className="w-48 space-y-3">
-                                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] block text-center">BATCH SIZE</label>
-                                    <input
-                                        type="number"
-                                        min={5}
-                                        max={200}
-                                        value={(!settings.max_items_per_city || isNaN(settings.max_items_per_city)) ? 25 : settings.max_items_per_city}
-                                        onChange={e => {
-                                            const parsed = parseInt(e.target.value);
-                                            setSettings({ ...settings, max_items_per_city: isNaN(parsed) ? 25 : parsed } as any);
-                                        }}
-                                        className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
-                                    />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-3">
+                                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] block text-center">TOTAL LISTINGS</label>
+                                    <div className="relative group">
+                                        <input
+                                            type="number"
+                                            min={5}
+                                            max={500}
+                                            value={(!settings.max_items_per_city || isNaN(settings.max_items_per_city)) ? 25 : settings.max_items_per_city}
+                                            onChange={e => {
+                                                const parsed = parseInt(e.target.value);
+                                                setSettings({ ...settings, max_items_per_city: isNaN(parsed) ? 25 : parsed } as any);
+                                            }}
+                                            className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
+                                        />
+                                        <div className="absolute -bottom-10 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                            <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Total listings across all cities per run</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="w-48 space-y-3">
-                                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] block text-center">CITY DELAY (S)</label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        max={300}
-                                        value={(!settings.pulse_interval || isNaN(settings.pulse_interval)) ? 15 : settings.pulse_interval}
-                                        onChange={e => {
-                                            const parsed = parseInt(e.target.value);
-                                            setSettings({ ...settings, pulse_interval: isNaN(parsed) ? 15 : parsed } as any);
-                                        }}
-                                        className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
-                                    />
+                                <div className="space-y-3">
+                                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] block text-center">CITIES PER PULSE</label>
+                                    <div className="relative group">
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={20}
+                                            value={(!settings.batch_size || isNaN(settings.batch_size)) ? 5 : settings.batch_size}
+                                            onChange={e => {
+                                                const parsed = parseInt(e.target.value);
+                                                setSettings({ ...settings, batch_size: isNaN(parsed) ? 5 : parsed } as any);
+                                            }}
+                                            className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
+                                        />
+                                        <div className="absolute -bottom-10 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                            <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">How many cities to scan in one pulse</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] block text-center">PULSE COOLDOWN (MIN)</label>
+                                    <div className="relative group">
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={300}
+                                            value={(!settings.pulse_interval || isNaN(settings.pulse_interval)) ? 15 : settings.pulse_interval}
+                                            onChange={e => {
+                                                const parsed = parseInt(e.target.value);
+                                                setSettings({ ...settings, pulse_interval: isNaN(parsed) ? 15 : parsed } as any);
+                                            }}
+                                            className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
+                                        />
+                                        <div className="absolute -bottom-10 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                            <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Minutes between automated scans</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -809,6 +893,93 @@ export default function SettingsPage() {
                     availableCities={availableCities}
                 />
             </main>
+            {/* Save Config Modal */}
+            {isSaveModalOpen && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-[#0f172a] border border-white/10 rounded-[2rem] w-full max-w-md p-8 shadow-2xl">
+                        <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-6">Save Sniper Template</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Configuration Name</label>
+                                <input
+                                    type="text"
+                                    value={newConfigName}
+                                    onChange={(e) => setNewConfigName(e.target.value)}
+                                    placeholder="e.g. Aggressive Toyota SF"
+                                    className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-4 text-white text-sm focus:outline-none focus:border-emerald-500/50 transition-all font-bold placeholder:text-slate-700"
+                                />
+                            </div>
+                            <div className="flex items-center gap-3 pt-4">
+                                <button
+                                    onClick={() => setIsSaveModalOpen(false)}
+                                    className="flex-1 bg-slate-900 text-slate-400 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:text-white transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveAsNew}
+                                    disabled={!newConfigName.trim() || saving}
+                                    className="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-600/20 disabled:opacity-50"
+                                >
+                                    {saving ? 'Saving...' : 'Confirm Save'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Load Config Modal */}
+            {isLoadModalOpen && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-[#0f172a] border border-white/10 rounded-[2rem] w-full max-w-lg p-8 shadow-2xl flex flex-col max-h-[80vh]">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Load Strategy</h3>
+                            <button onClick={() => setIsLoadModalOpen(false)} className="text-slate-500 hover:text-white transition-all">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                            {savedConfigs.length === 0 ? (
+                                <div className="text-center py-12 border-2 border-dashed border-white/5 rounded-3xl">
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">No templates found</p>
+                                </div>
+                            ) : (
+                                savedConfigs.map((cfg: SavedConfig) => (
+                                    <div 
+                                        key={cfg.id}
+                                        onClick={() => handleLoadConfig(cfg.config)}
+                                        className="group bg-slate-950/40 border border-white/5 hover:border-indigo-500/40 rounded-3xl p-6 cursor-pointer transition-all hover:bg-slate-900/60"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="text-white font-black uppercase italic tracking-tight text-lg group-hover:text-indigo-400 transition-colors">
+                                                    {cfg.name}
+                                                </span>
+                                                <span className="text-slate-600 font-bold text-[9px] uppercase tracking-[0.2em] mt-1">
+                                                    Modified: {new Date(cfg.updated_at).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={(e) => handleDeleteConfig(e, cfg.id)}
+                                                    className="p-3 text-slate-700 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-indigo-500 text-slate-600 group-hover:text-white transition-all">
+                                                    <Plus className="rotate-45" size={18} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
