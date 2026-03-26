@@ -559,22 +559,36 @@ def upsert_leads(leads: list[dict], dealer_id: str) -> int:
         # 1. Extract all external_ids
         external_ids = [lead["external_id"] for lead in leads if "external_id" in lead]
         
-        # 2. Query Supabase for existing external_ids
-        # PostgREST max URL length is high, but we can do it in one sweep for < 200 items
-        existing_res = db.table("leads").select("external_id").in_("external_id", external_ids).execute()
-        existing_ids = {row["external_id"] for row in existing_res.data}
+        # 2. Query Supabase for existing leads to check mileage status
+        existing_res = db.table("leads").select("external_id, mileage").in_("external_id", external_ids).execute()
+        existing_data = {row["external_id"]: row.get("mileage") for row in existing_res.data}
         
         # 3. Filter only completely new leads
-        new_leads = [lead for lead in leads if lead["external_id"] not in existing_ids]
+        new_leads = [lead for lead in leads if lead["external_id"] not in existing_data]
+        
+        # 4. Identify existing leads that need a mileage update (NULL in DB, but found in new scrape)
+        update_leads = []
+        for lead in leads:
+            ext_id = lead["external_id"]
+            if ext_id in existing_data and existing_data[ext_id] is None and lead.get("mileage") is not None:
+                update_leads.append(lead)
 
-        if not new_leads:
-            log_info(f"[DB] All {len(leads)} leads already exist. Nothing new to insert.")
-            return len(leads)
+        processed_count = 0
+        
+        # 5. Insert new leads
+        if new_leads:
+            db.table("leads").insert(new_leads).execute()
+            log_info(f"[DB] Inserted {len(new_leads)} new leads.")
+            processed_count += len(new_leads)
 
-        # 4. Insert only the new leads
-        result = db.table("leads").insert(new_leads).execute()
-        log_info(f"[DB] Inserted {len(new_leads)} new leads out of {len(leads)} scraped.")
-        return len(new_leads)
+        # 6. Update mileage for existing leads if found
+        if update_leads:
+            log_info(f"[DB] Updating mileage for {len(update_leads)} existing leads...")
+            for ul in update_leads:
+                db.table("leads").update({"mileage": ul["mileage"]}).eq("external_id", ul["external_id"]).execute()
+            processed_count += len(update_leads)
+
+        return processed_count
     except Exception as e:
         log_error(f"[DB] Upsert failed: {e}")
         raise
@@ -722,7 +736,7 @@ async def run_scraper(event: dict) -> dict:
         "cities": cities,
         "count": count,
         "leads_preview": [
-            {"title": l["title"], "price": l["price"], "url": l["url"]}
+            {"title": l["title"], "price": l["price"], "mileage": l.get("mileage"), "url": l["url"]}
             for l in all_leads[:5]   # Return first 5 for logging/debug
         ],
     }
