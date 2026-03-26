@@ -87,13 +87,20 @@ export async function runScraper(settings: Settings, isDeepScrape = false) {
     }
 
     // ── 1. Smart Sleep Guard ──────────────────────────────────────────────
-    const currentHour = now.getHours();
+    // Use America/Los_Angeles time for the sleep check to match user's local active hours
+    const laTime = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles',
+        hour: 'numeric',
+        hour12: false
+    }).format(now);
+    
+    const currentHour = parseInt(laTime);
     const startHour = settings.active_hour_start ?? 0;
     const endHour = settings.active_hour_end ?? 24;
 
     if (currentHour < startHour || currentHour >= endHour) {
-        console.log(`[Tiered Sniper] 💤 SYSTEM SLEEP (Active: ${startHour}:00 - ${endHour}:00 | Current: ${currentHour}:00)`);
-        return { success: true, message: 'System is currently in scheduled sleep mode.' };
+        console.log(`[Tiered Sniper] 💤 SYSTEM SLEEP (Active: ${startHour}:00 - ${endHour}:00 | Current: ${currentHour}:00 LA)`);
+        return { success: true, message: `System is in sleep mode (Local LA Time: ${currentHour}:00).` };
     }
 
     // ── 2. Budget Guardrail ───────────────────────────────────────────────
@@ -109,14 +116,16 @@ export async function runScraper(settings: Settings, isDeepScrape = false) {
     const homeCoords  = getZipCoords(settings.zip || '90001');
     const radiusMiles = settings.radius ?? 200;
 
-    // Base pool: Start with user's manual locations, or fall back to geographic radius
+    // Base pool: Filter all potential cities (manual or geographic) by radius
     let cityPool = (settings.locations && settings.locations.length > 0)
-        ? settings.locations.map(name => ({
-            name,
-            distance: CITY_COORDS[name]?.lat 
-                ? calculateDistance(homeCoords.lat, homeCoords.lng, CITY_COORDS[name].lat, CITY_COORDS[name].lng)
-                : 0
-          }))
+        ? settings.locations
+            .map(name => ({
+                name,
+                distance: CITY_COORDS[name]?.lat 
+                    ? calculateDistance(homeCoords.lat, homeCoords.lng, CITY_COORDS[name].lat, CITY_COORDS[name].lng)
+                    : 9999, // Unknown cities are pushed to the end
+            }))
+            .filter(c => c.distance <= radiusMiles)
         : Object.entries(CITY_COORDS)
             .filter(([name]) => name !== 'default')
             .map(([name, coords]) => ({
@@ -125,47 +134,68 @@ export async function runScraper(settings: Settings, isDeepScrape = false) {
             }))
             .filter(c => c.distance <= radiusMiles);
 
-    if (cityPool.length === 0) cityPool.push({ name: 'losangeles', distance: 0 });
+    if (cityPool.length === 0) {
+        cityPool.push({ 
+            name: settings.locations?.[0] || 'losangeles', 
+            distance: 0 
+        });
+    }
     
     const allCities = [...cityPool].sort((a, b) => a.distance - b.distance);
 
-    // -- Anchored Rotation Strategy --
-    // 1. "Anchored" = 2 closest cities (strictly locked for every pulse)
-    // 2. "Hot Zone"  = Next 13 closest cities (rotating)
-    // 3. "Far Sweep" = Rest of the radius (rotating every 10 pulses)
+    // -- Persistent Anchored Rotation Strategy --
+    // 1. "Anchored"      = 2 closest cities (always included every pulse)
+    // 2. "Rotating Pool" = remaining cities sorted closest-first
+    //
+    // We read last_city_index from the DB so BOTH manual and 30-min scrapes
+    // share the same sequential position — no city is skipped or repeated
+    // just because a manual run fired mid-cycle.
     
-    const anchoredCount = 2;
-    const anchored      = allCities.slice(0, anchoredCount).map(c => c.name);
-    
-    const hotZoneSize   = 15;
-    const hotZone       = allCities.slice(0, hotZoneSize).map(c => c.name);
-    const farSweep      = allCities.slice(hotZoneSize).map(c => c.name);
+    const anchoredCount     = 2;
+    const anchored          = allCities.slice(0, anchoredCount).map(c => c.name);
+    const batchSize         = settings.batch_size ?? 5;
+    const rotatingBatchSize = Math.max(0, batchSize - anchoredCount);
 
-    const SESSION_INTERVAL_MINS = 30; // cron-job.org fires every 30 minutes
-    const timeIndex     = Math.floor(Date.now() / (SESSION_INTERVAL_MINS * 60 * 1000));
-    const isFarSweep    = timeIndex % 20 === 0; // Far sweep every ~10 hours
-    const batchSize     = settings.batch_size ?? 5;
-    
-    // Determine the rotating pool (Far Sweep or the remainder of the Hot Zone)
-    const rotatingPool  = (isFarSweep && farSweep.length > 0) 
-        ? farSweep 
-        : hotZone.filter(name => !anchored.includes(name));
+    // Pool: everything beyond the anchored cities, closest-first
+    const rotatingPool = allCities.slice(anchoredCount).map(c => c.name);
 
-    const rotatingBatchSize = Math.max(0, batchSize - anchored.length);
-    const startIndex        = (timeIndex * rotatingBatchSize) % (rotatingPool.length || 1);
+    // Read the persistent index (defaults to 0 if column not yet populated)
+    const startIndex = typeof settings.last_city_index === 'number'
+        ? settings.last_city_index
+        : 0;
 
+    // Advance and wrap the index, then persist it immediately before triggering
+    const nextIndex = rotatingPool.length > 0
+        ? (startIndex + rotatingBatchSize) % rotatingPool.length
+        : 0;
+
+    try {
+        await adminSupabase
+            .from('settings')
+            .update({ last_city_index: nextIndex })
+            .eq('id', settings.id);
+    } catch (idxErr: any) {
+        console.error('[City Rotation] Failed to persist last_city_index:', idxErr.message);
+    }
+
+    // Pick rotating cities starting at startIndex
     const rotating: string[] = [];
-    if (rotatingPool.length > 0) {
+    if (rotatingPool.length > 0 && rotatingBatchSize > 0) {
         for (let i = 0; i < rotatingBatchSize; i++) {
             rotating.push(rotatingPool[(startIndex + i) % rotatingPool.length]);
         }
     }
 
-    // Final set: Always prepend anchored cities (up to batchSize) then fill with rotating
+    // Final set: anchored first (closest), then rotating fill
     const cities = [...anchored.slice(0, batchSize), ...rotating].slice(0, batchSize);
 
-    const mode = isFarSweep ? 'FAR SWEEP' : 'HOT ZONE (ANCHORED)';
-    console.log(`[Tiered Sniper] ${mode} → [${cities.join(', ')}] (Anchored: ${anchored.join(', ')})`);
+    const cityDisplay = cities.map(name => {
+        const dist = allCities.find(c => c.name === name)?.distance || 0;
+        return `${name} (${Math.round(dist)}mi)`;
+    }).join(', ');
+
+    const mode = 'HOT ZONE (ANCHORED)';
+    console.log(`[Tiered Sniper] ${mode} → [${cityDisplay}] (Anchored: ${anchored.join(', ')})`);
 
     // ── 5. Log Scrape Run Record ───────────────────────────────────────────
     let runId: string | null = null;
@@ -201,7 +231,7 @@ export async function runScraper(settings: Settings, isDeepScrape = false) {
     // The Lambda handles its own status updates to 'Running' and 'Success'.
     const lambdaPayload = {
         run_id:      runId,
-        mode:        isFarSweep ? 'far_sweep' : 'pulse',
+        mode:        'pulse',
         dealer_id:   settings.id,
         cities,
         year_min:    settings.year_min,

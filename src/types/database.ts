@@ -56,6 +56,7 @@ export type Settings = {
     budget_spent_today: number;
     last_budget_reset_at: string | null;
     exclude_salvage: boolean;
+    last_city_index: number;
     updated_at: string;
 };
 
@@ -103,4 +104,13 @@ export type ScrapeRun = {
     status: 'Pending' | 'Success' | 'Cooldown' | 'Error' | 'Partial';
     error_message: string | null;
     created_at: string;
+};
+
+export type SavedConfig = {
+    id: string;
+    dealer_id: string;
+    name: string;
+    config: Partial<Settings>;
+    created_at: string;
+    updated_at: string;
 };
