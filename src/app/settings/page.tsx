@@ -17,8 +17,9 @@ export default function SettingsPage() {
     const [saving, setSaving] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [engineStatus, setEngineStatus] = useState('Checking' as 'Checking' | 'Online' | 'Offline' | 'Stalled');
-    const [success, setSuccess] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(null as string | null);
+    const [error, setError] = useState(null as string | null);
+    const [dealerId, setDealerId] = useState<string | null>(null);
     
     // Config Management State
     const [savedConfigs, setSavedConfigs] = useState<SavedConfig[]>([]);
@@ -117,10 +118,14 @@ export default function SettingsPage() {
         }
     };
 
-    const fetchSavedConfigs = async () => {
+    const fetchSavedConfigs = async (uid?: string) => {
+        const targetUid = uid || dealerId;
+        if (!targetUid) return;
+
         const { data } = await supabase
             .from('saved_configs')
             .select('*')
+            .eq('dealer_id', targetUid)
             .order('created_at', { ascending: false });
         if (data) setSavedConfigs(data);
     };
@@ -133,7 +138,7 @@ export default function SettingsPage() {
             .insert({
                 name: newConfigName,
                 config: settings,
-                dealer_id: '00000000-0000-0000-0000-000000000000'
+                dealer_id: dealerId || '00000000-0000-0000-0000-000000000000'
             });
 
         if (!error) {
@@ -163,6 +168,20 @@ export default function SettingsPage() {
             setSavedConfigs((prev: SavedConfig[]) => prev.filter((c: SavedConfig) => c.id !== id));
         }
     };
+
+    useEffect(() => {
+        const initData = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setDealerId(user.id);
+                // After getting dealer ID, load initial settings and configs
+                await fetchSettings();
+                await fetchSavedConfigs(user.id);
+            }
+            setLoading(false);
+        };
+        initData();
+    }, []);
 
     const fetchLeads = async () => {
         const { data, error } = await supabase
@@ -977,6 +996,18 @@ export default function SettingsPage() {
                                 ))
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Notification Toast */}
+            {(success || error) && (
+                <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[300] animate-in fade-in slide-in-from-bottom-8 duration-500">
+                    <div className={`glass-card ${error ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'} px-8 py-4 rounded-[2rem] shadow-[0_40px_100px_rgba(0,0,0,0.5)] flex items-center gap-4 border backdrop-blur-xl ring-1 ${error ? 'ring-red-500/30' : 'ring-emerald-500/30'}`}>
+                        {error ? <X size={18} /> : <CheckCircle2 size={18} />}
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] italic">
+                            {error || success}
+                        </span>
                     </div>
                 </div>
             )}
