@@ -19,6 +19,7 @@ provider:
     images:
       scraper-image-v8:
         path: .
+        platform: linux/amd64
 
 # plugins:
 #   - serverless-lift

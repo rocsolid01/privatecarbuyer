@@ -21,6 +21,7 @@ export interface DealershipFilters {
     minMargin: string;
     status: string;
     titleStatus: string;
+    maxDaysOld: string;
 }
 
 interface LeadFiltersProps {
@@ -54,6 +55,7 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
             minMargin: '',
             status: '',
             titleStatus: '',
+            maxDaysOld: '',
         });
     };
 
@@ -212,18 +214,30 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
                             </select>
                         </div>
 
-                        {/* Margin Filter */}
+                        {/* Margin & Age Filters */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Estimated Margin (ROI)</label>
-                            <div className="relative">
-                                <TrendingUp size={14} className="absolute left-6 top-5 text-indigo-500" />
-                                <input
-                                    type="number"
-                                    placeholder="Min Est. Margin"
-                                    value={filters.minMargin}
-                                    onChange={(e) => handleChange('minMargin', e.target.value)}
-                                    className="w-full bg-slate-950/60 border border-white/5 rounded-2xl py-4 pl-14 pr-6 text-xs text-white font-bold focus:border-indigo-500/50 transition-all outline-none italic"
-                                />
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Market Intel (Margin & Age)</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="relative">
+                                    <TrendingUp size={14} className="absolute left-6 top-5 text-indigo-500" />
+                                    <input
+                                        type="number"
+                                        placeholder="Min Margin"
+                                        value={filters.minMargin}
+                                        onChange={(e) => handleChange('minMargin', e.target.value)}
+                                        className="w-full bg-slate-950/60 border border-white/5 rounded-2xl py-4 pl-14 pr-6 text-xs text-white font-bold focus:border-indigo-500/50 transition-all outline-none italic"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <Target size={14} className="absolute left-6 top-5 text-indigo-400" />
+                                    <input
+                                        type="number"
+                                        placeholder="Max Days Old"
+                                        value={filters.maxDaysOld}
+                                        onChange={(e) => handleChange('maxDaysOld', e.target.value)}
+                                        className="w-full bg-slate-950/60 border border-white/5 rounded-2xl py-4 pl-14 pr-6 text-xs text-white font-bold focus:border-indigo-500/50 transition-all outline-none italic"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

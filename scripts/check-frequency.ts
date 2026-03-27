@@ -10,14 +10,14 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkScrapeFrequency() {
-    console.log('Checking scrape frequency for the last 4 hours...');
+    console.log('Checking scrape frequency for the last 24 hours...');
     const now = new Date();
-    const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await supabase
         .from('scrape_runs')
         .select('created_at, status, mode')
-        .gte('created_at', fourHoursAgo)
+        .gte('created_at', twentyFourHoursAgo)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -26,7 +26,7 @@ async function checkScrapeFrequency() {
     }
 
     if (!data || data.length === 0) {
-        console.log('No scrape runs found in the last 4 hours.');
+        console.log('No scrape runs found in the last 24 hours.');
         return;
     }
 

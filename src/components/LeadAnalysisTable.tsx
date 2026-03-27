@@ -192,8 +192,10 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                 </td>
                                 <td className="p-3">
                                     <div className="flex items-center gap-1.5 text-slate-500 font-black italic tracking-widest text-[8px] uppercase">
-                                        <Calendar size={10} className="text-indigo-500" />
-                                        <span>{formatDistanceToNow(new Date(lead.post_time))} ago</span>
+                                        <Clock size={10} className="text-indigo-500" />
+                                        <span>
+                                            {Math.floor(Math.abs(new Date().getTime() - new Date(lead.post_time).getTime()) / (1000 * 60 * 60))}H AGO
+                                        </span>
                                     </div>
                                 </td>
                                 <td className="p-3">

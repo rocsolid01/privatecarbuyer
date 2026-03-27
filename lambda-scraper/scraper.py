@@ -260,7 +260,8 @@ async def scrape_city(
         page_num += 1
 
         # ── Extract listings from current page ──────────────────────────────
-        items = await page.query_selector_all(".cl-search-result, .result-row, li[data-pid], .cl-static-search-result")
+        # Updated selectors to match latest Craigslist UI (.result-node, .gallery-card)
+        items = await page.query_selector_all(".result-node, .gallery-card, .cl-search-result, .result-row, li[data-pid]")
 
         if not items:
             log_info(f"[{city}] No items found on page {page_num}. Done.")
@@ -370,7 +371,8 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
 
         # 6. Mileage
         mileage = None
-        meta_el = await item.query_selector(".meta, .cl-search-result-meta")
+        # Target the '.meta' container directly as found in live browser inspection
+        meta_el = await item.query_selector(".meta")
         if meta_el:
             meta_text = (await meta_el.inner_text()).strip()
             mileage = _extract_mileage_from_meta(meta_text)
@@ -406,7 +408,8 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
             "is_clean_title": title_status == 'Clean',
             "status": "New",
             "ai_margin": ai_margin,
-            "scraped_at": datetime.now(timezone.utc).isoformat()
+            "scraped_at": datetime.now(timezone.utc).isoformat(),
+            "meta_text": meta_text if 'meta_text' in locals() else None
         }
     except Exception as e:
         log_warn(f"[{city}] Error parsing listing element: {e}")
@@ -551,27 +554,32 @@ def upsert_leads(leads: list[dict], dealer_id: str) -> int:
 
     db = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    # Attach dealer_id to every lead
+    # Strip meta_text before DB insertion to avoid schema errors
+    leads_to_save = []
     for lead in leads:
-        lead["dealer_id"] = dealer_id
+        clean_lead = lead.copy()
+        if "meta_text" in clean_lead:
+            del clean_lead["meta_text"]
+        clean_lead["dealer_id"] = dealer_id
+        leads_to_save.append(clean_lead)
 
     try:
         # 1. Extract all external_ids
-        external_ids = [lead["external_id"] for lead in leads if "external_id" in lead]
+        external_ids = [l["external_id"] for l in leads_to_save if "external_id" in l]
         
         # 2. Query Supabase for existing leads to check mileage status
         existing_res = db.table("leads").select("external_id, mileage").in_("external_id", external_ids).execute()
         existing_data = {row["external_id"]: row.get("mileage") for row in existing_res.data}
         
         # 3. Filter only completely new leads
-        new_leads = [lead for lead in leads if lead["external_id"] not in existing_data]
+        new_leads = [l for l in leads_to_save if l["external_id"] not in existing_data]
         
-        # 4. Identify existing leads that need a mileage update (NULL in DB, but found in new scrape)
+        # 4. Identify existing leads that need a mileage update
         update_leads = []
-        for lead in leads:
-            ext_id = lead["external_id"]
-            if ext_id in existing_data and existing_data[ext_id] is None and lead.get("mileage") is not None:
-                update_leads.append(lead)
+        for l in leads_to_save:
+            ext_id = l["external_id"]
+            if ext_id in existing_data and existing_data[ext_id] is None and l.get("mileage") is not None:
+                update_leads.append(l)
 
         processed_count = 0
         
@@ -583,10 +591,14 @@ def upsert_leads(leads: list[dict], dealer_id: str) -> int:
 
         # 6. Update mileage for existing leads if found
         if update_leads:
-            log_info(f"[DB] Updating mileage for {len(update_leads)} existing leads...")
+            log_info(f"[DB] Found {len(update_leads)} existing leads needing mileage updates.")
             for ul in update_leads:
-                db.table("leads").update({"mileage": ul["mileage"]}).eq("external_id", ul["external_id"]).execute()
-            processed_count += len(update_leads)
+                try:
+                    db.table("leads").update({"mileage": ul["mileage"]}).eq("external_id", ul["external_id"]).execute()
+                    log_info(f"[DB] Updated mileage for {ul['external_id']} to {ul['mileage']}")
+                    processed_count += 1
+                except Exception as ue:
+                    log_error(f"[DB] Failed to update mileage for {ul['external_id']}: {ue}")
 
         return processed_count
     except Exception as e:
@@ -736,8 +748,15 @@ async def run_scraper(event: dict) -> dict:
         "cities": cities,
         "count": count,
         "leads_preview": [
-            {"title": l["title"], "price": l["price"], "mileage": l.get("mileage"), "url": l["url"]}
-            for l in all_leads[:5]   # Return first 5 for logging/debug
+            {
+                "title": l["title"], 
+                "price": l["price"], 
+                "mileage": l.get("mileage"), 
+                "url": l["url"],
+                "meta_text": l.get("meta_text"),
+                "raw_title": l.get("title")
+            }
+            for l in all_leads[:10]   # Return more for logging/debug
         ],
     }
 
