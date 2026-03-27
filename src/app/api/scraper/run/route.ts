@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const result = await runScraper(settings, false);
+        const result = await runScraper(settings, false, false);
         return Response.json({ success: true, result });
     } catch (e: any) {
         console.error('[Scraper API Error]:', e);

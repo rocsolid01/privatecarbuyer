@@ -78,7 +78,7 @@ function getZipCoords(zip: string): { lat: number; lng: number } {
 // ─────────────────────────────────────────────────────────────────────────────
 // Main run trigger — replaces runScraper() from apify.ts
 // ─────────────────────────────────────────────────────────────────────────────
-export async function runScraper(settings: Settings, isDeepScrape = false) {
+export async function runScraper(settings: Settings, isDeepScrape = false, isPulse = false) {
     const now = new Date();
     const LAMBDA_URL = typeof process !== 'undefined' ? process.env.LAMBDA_SCRAPER_URL : null;
 
@@ -94,11 +94,13 @@ export async function runScraper(settings: Settings, isDeepScrape = false) {
         hour12: false
     }).format(now);
     
-    const currentHour = parseInt(laTime);
+    // Robust parsing for Intl format which might include hidden characters
+    const currentHour = parseInt(laTime.replace(/[^0-9]/g, ''));
     const startHour = settings.active_hour_start ?? 0;
     const endHour = settings.active_hour_end ?? 24;
 
-    if (currentHour < startHour || currentHour >= endHour) {
+    // Pulse scans follow the schedule; manual scans (isPulse=false) always bypass it
+    if (isPulse && (currentHour < startHour || currentHour >= endHour)) {
         console.log(`[Tiered Sniper] 💤 SYSTEM SLEEP (Active: ${startHour}:00 - ${endHour}:00 | Current: ${currentHour}:00 LA)`);
         return { success: true, message: `System is in sleep mode (Local LA Time: ${currentHour}:00).` };
     }

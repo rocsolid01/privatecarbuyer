@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
         let sessions = 0;
         for (const s of allSettings) {
-            await runScraper(s, false);
+            await runScraper(s, false, true);
             sessions++;
         }
 
