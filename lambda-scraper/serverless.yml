@@ -17,7 +17,7 @@ provider:
 
   ecr:
     images:
-      scraper-image-v8:
+      scraper-image-v14:
         path: .
         platform: linux/amd64
 
@@ -27,7 +27,8 @@ provider:
 functions:
   scrape:
     image:
-      name: scraper-image-v8
+      name: scraper-image-v14
+    url: true  # Enable Function URL (bypasses 29s API Gateway limit)
     events:
       - http:
           path: scrape

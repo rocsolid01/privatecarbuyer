@@ -1,0 +1,754 @@
+﻿aws : 2026-03-27 15:37:25,684 - MainThread - 
+awscli.clidriver - DEBUG - CLI version: 
+aws-cli/2.34.6 Python/3.13.11 Windows/11 
+exe/AMD64
+At line:1 char:1
++ aws lambda update-function-code 
+--function-name pcb-scraper-dev-scrap ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified:  
+   (2026-03-27 15:3...ws/11 exe/AMD64:Strin  
+  g) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandE 
+   rror
+ 
+2026-03-27 15:37:25,685 - MainThread - 
+awscli.clidriver - DEBUG - Arguments entered 
+to CLI: ['lambda', 'update-function-code', 
+'--function-name', 'pcb-scraper-dev-scrape', 
+'--image-uri', '009398924547.dkr.ecr.us-east-
+1.amazonaws.com/serverless-pcb-scraper-dev:v1
+5', '--region', 'us-east-1', '--profile', 
+'pcb-scraper', '--debug']
+2026-03-27 15:37:25,764 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<function add_s3 at 0x000002102B3989A0>
+2026-03-27 15:37:25,764 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<function add_ddb at 0x000002102A0FA340>
+2026-03-27 15:37:25,764 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<bound method BasicCommand.add_command of 
+<class 'awscli.customizations.configure.confi
+gure.ConfigureCommand'>>
+2026-03-27 15:37:25,764 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<function change_name at 0x000002102A055B20>
+2026-03-27 15:37:25,764 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<function change_name at 0x000002102A056AC0>
+2026-03-27 15:37:25,764 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<function add_history_commands at 
+0x000002102A2618A0>
+2026-03-27 15:37:25,764 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<bound method BasicCommand.add_command of 
+<class 'awscli.customizations.devcommands.CLI
+DevCommand'>>
+2026-03-27 15:37:25,765 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<bound method BasicCommand.add_command of 
+<class 'awscli.customizations.login.login.Log
+inCommand'>>
+2026-03-27 15:37:25,765 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<bound method BasicCommand.add_command of 
+<class 'awscli.customizations.login.logout.Lo
+goutCommand'>>
+2026-03-27 15:37:25,765 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<function add_waiters at 0x000002102B3B53A0>
+2026-03-27 15:37:25,765 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.main: calling handler 
+<bound method AliasSubCommandInjector.on_buil
+ding_command_table of 
+<awscli.alias.AliasSubCommandInjector object 
+at 0x000002102B3CE660>>
+2026-03-27 15:37:25,765 - MainThread - 
+botocore.loaders - DEBUG - Loading JSON 
+file: C:\Program 
+Files\Amazon\AWSCLIV2\awscli\data\cli.json
+2026-03-27 15:37:25,769 - MainThread - 
+botocore.hooks - DEBUG - Event 
+top-level-args-parsed: calling handler 
+<function resolve_types at 
+0x000002102A250EA0>
+2026-03-27 15:37:25,770 - MainThread - 
+botocore.hooks - DEBUG - Event 
+top-level-args-parsed: calling handler 
+<function no_sign_request at 
+0x000002102A2511C0>
+2026-03-27 15:37:25,770 - MainThread - 
+botocore.hooks - DEBUG - Event 
+top-level-args-parsed: calling handler 
+<function resolve_verify_ssl at 
+0x000002102A251120>
+2026-03-27 15:37:25,770 - MainThread - 
+botocore.hooks - DEBUG - Event 
+top-level-args-parsed: calling handler 
+<function resolve_cli_read_timeout at 
+0x000002102A251300>
+2026-03-27 15:37:25,770 - MainThread - 
+botocore.hooks - DEBUG - Event 
+top-level-args-parsed: calling handler 
+<function resolve_cli_connect_timeout at 
+0x000002102A251260>
+2026-03-27 15:37:25,770 - MainThread - 
+botocore.hooks - DEBUG - Event 
+top-level-args-parsed: calling handler 
+<built-in method update of dict object at 
+0x000002102B4454C0>
+2026-03-27 15:37:25,770 - MainThread - 
+botocore.session - DEBUG - Setting config 
+variable for profile to 'pcb-scraper'
+2026-03-27 15:37:25,770 - MainThread - 
+botocore.session - DEBUG - Setting config 
+variable for region to 'us-east-1'
+2026-03-27 15:37:25,771 - MainThread - 
+awscli.clidriver - DEBUG - CLI version: 
+aws-cli/2.34.6 Python/3.13.11 Windows/11 
+exe/AMD64
+2026-03-27 15:37:25,771 - MainThread - 
+awscli.clidriver - DEBUG - Arguments entered 
+to CLI: ['lambda', 'update-function-code', 
+'--function-name', 'pcb-scraper-dev-scrape', 
+'--image-uri', '009398924547.dkr.ecr.us-east-
+1.amazonaws.com/serverless-pcb-scraper-dev:v1
+5', '--region', 'us-east-1', '--profile', 
+'pcb-scraper', '--debug']
+2026-03-27 15:37:25,771 - MainThread - 
+botocore.hooks - DEBUG - Event 
+session-initialized: calling handler 
+<function add_timestamp_parser at 
+0x000002102B39BEC0>
+2026-03-27 15:37:25,771 - MainThread - 
+botocore.hooks - DEBUG - Event 
+session-initialized: calling handler 
+<function register_uri_param_handler at 
+0x00000210291887C0>
+2026-03-27 15:37:25,772 - MainThread - 
+botocore.hooks - DEBUG - Event 
+session-initialized: calling handler 
+<function add_binary_formatter at 
+0x0000021029D7B6A0>
+2026-03-27 15:37:25,772 - MainThread - 
+botocore.hooks - DEBUG - Event 
+session-initialized: calling handler 
+<function no_pager_handler at 
+0x0000021029D11760>
+2026-03-27 15:37:25,772 - MainThread - 
+botocore.hooks - DEBUG - Event 
+session-initialized: calling handler 
+<function inject_assume_role_provider_cache 
+at 0x0000021029D7AC00>
+2026-03-27 15:37:25,775 - MainThread - 
+botocore.utils - DEBUG - IMDS ENDPOINT: 
+http://169.254.169.254/
+2026-03-27 15:37:25,777 - MainThread - 
+botocore.credentials - DEBUG - Skipping 
+environment variable credential check 
+because profile name was explicitly set.
+2026-03-27 15:37:25,777 - MainThread - 
+botocore.hooks - DEBUG - Event 
+session-initialized: calling handler 
+<function attach_history_handler at 
+0x000002102A2600E0>
+2026-03-27 15:37:25,777 - MainThread - 
+botocore.hooks - DEBUG - Event 
+session-initialized: calling handler 
+<function inject_json_file_cache at 
+0x000002102A0F49A0>
+2026-03-27 15:37:25,858 - MainThread - 
+botocore.loaders - DEBUG - Loading JSON 
+file: C:\Program Files\Amazon\AWSCLIV2\awscli
+\botocore\data\lambda\2015-03-31\service-2.js
+on
+2026-03-27 15:37:25,877 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.lambda: calling 
+handler functools.partial(<function 
+_remove_commands at 0x000002102A318AE0>, comm
+ands_to_remove=['invoke-with-response-stream'
+])
+2026-03-27 15:37:25,877 - MainThread - 
+awscli.customizations.removals - DEBUG - 
+Removing operation: 
+invoke-with-response-stream
+2026-03-27 15:37:25,877 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.lambda: calling 
+handler <function _add_wizard_command at 
+0x000002102B4134C0>
+2026-03-27 15:37:25,878 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.lambda: calling 
+handler <function add_waiters at 
+0x000002102B3B53A0>
+2026-03-27 15:37:25,952 - MainThread - 
+botocore.loaders - DEBUG - Loading JSON 
+file: C:\Program Files\Amazon\AWSCLIV2\awscli
+\botocore\data\lambda\2015-03-31\waiters-2.js
+on
+2026-03-27 15:37:25,953 - MainThread - 
+botocore.hooks - DEBUG - Event 
+building-command-table.lambda: calling 
+handler <bound method AliasSubCommandInjector
+.on_building_command_table of 
+<awscli.alias.AliasSubCommandInjector object 
+at 0x000002102B3CE660>>
+2026-03-27 15:37:25,955 - MainThread - 
+awscli.clidriver - DEBUG - 
+OrderedDict({'function-name': 
+<awscli.arguments.CLIArgument object at 
+0x000002102B640EC0>, 'zip-file': 
+<awscli.arguments.CLIArgument object at 
+0x000002102B483ED0>, 's3-bucket': 
+<awscli.arguments.CLIArgument object at 
+0x000002102B650050>, 's3-key': 
+<awscli.arguments.CLIArgument object at 
+0x000002102B624770>, 's3-object-version': 
+<awscli.arguments.CLIArgument object at 
+0x000002102B6248A0>, 'image-uri': 
+<awscli.arguments.CLIArgument object at 
+0x000002102B491910>, 'publish': 
+<awscli.arguments.BooleanArgument object at 
+0x000002102B641010>, 'no-publish': 
+<awscli.arguments.BooleanArgument object at 
+0x000002102B650190>, 'dry-run': 
+<awscli.arguments.BooleanArgument object at 
+0x000002102B6502D0>, 'no-dry-run': 
+<awscli.arguments.BooleanArgument object at 
+0x000002102B6249D0>, 'revision-id': 
+<awscli.arguments.CLIArgument object at 
+0x000002102B614D10>, 'architectures': 
+<awscli.arguments.ListArgument object at 
+0x000002102B641160>, 'source-kms-key-arn': 
+<awscli.arguments.CLIArgument object at 
+0x000002102B614C00>, 'publish-to': 
+<awscli.arguments.CLIArgument object at 
+0x000002102B5F8F50>})
+2026-03-27 15:37:25,955 - MainThread - 
+botocore.hooks - DEBUG - Event building-argum
+ent-table.lambda.update-function-code: 
+calling handler <function 
+add_streaming_output_arg at 
+0x000002102B39B560>
+2026-03-27 15:37:25,955 - MainThread - 
+botocore.hooks - DEBUG - Event building-argum
+ent-table.lambda.update-function-code: 
+calling handler <function 
+_modify_zipfile_docstring at 
+0x0000021029D7B060>
+2026-03-27 15:37:25,955 - MainThread - 
+botocore.hooks - DEBUG - Event building-argum
+ent-table.lambda.update-function-code: 
+calling handler <function add_cli_input_json 
+at 0x0000021029D7BF60>
+2026-03-27 15:37:25,955 - MainThread - 
+botocore.hooks - DEBUG - Event building-argum
+ent-table.lambda.update-function-code: 
+calling handler <function add_cli_input_yaml 
+at 0x0000021029D9CD60>
+2026-03-27 15:37:25,955 - MainThread - 
+botocore.hooks - DEBUG - Event building-argum
+ent-table.lambda.update-function-code: 
+calling handler <function 
+unify_paging_params at 0x000002102A0FAB60>
+2026-03-27 15:37:26,035 - MainThread - 
+botocore.loaders - DEBUG - Loading JSON 
+file: C:\Program Files\Amazon\AWSCLIV2\awscli
+\botocore\data\lambda\2015-03-31\paginators-1
+.json
+2026-03-27 15:37:26,036 - MainThread - 
+botocore.loaders - DEBUG - Loading JSON 
+file: C:\Program Files\Amazon\AWSCLIV2\awscli
+\botocore\data\lambda\2015-03-31\paginators-1
+.sdk-extras.json
+2026-03-27 15:37:26,036 - MainThread - 
+botocore.hooks - DEBUG - Event building-argum
+ent-table.lambda.update-function-code: 
+calling handler <function 
+add_generate_skeleton at 0x000002102A227740>
+2026-03-27 15:37:26,037 - MainThread - 
+botocore.hooks - DEBUG - Event before-buildin
+g-argument-table-parser.lambda.update-functio
+n-code: calling handler <bound method Overrid
+eRequiredArgsArgument.override_required_args 
+of <awscli.customizations.cliinput.CliInputJS
+ONArgument object at 0x000002102B641400>>
+2026-03-27 15:37:26,037 - MainThread - 
+botocore.hooks - DEBUG - Event before-buildin
+g-argument-table-parser.lambda.update-functio
+n-code: calling handler <bound method Overrid
+eRequiredArgsArgument.override_required_args 
+of <awscli.customizations.cliinput.CliInputYA
+MLArgument object at 0x000002102B641550>>
+2026-03-27 15:37:26,037 - MainThread - 
+botocore.hooks - DEBUG - Event before-buildin
+g-argument-table-parser.lambda.update-functio
+n-code: calling handler <bound method Generat
+eCliSkeletonArgument.override_required_args 
+of <awscli.customizations.generatecliskeleton
+.GenerateCliSkeletonArgument object at 
+0x000002102B6416A0>>
+2026-03-27 15:37:26,037 - MainThread - 
+botocore.hooks - DEBUG - Event building-comma
+nd-table.lambda_update-function-code: 
+calling handler <function add_waiters at 
+0x000002102B3B53A0>
+2026-03-27 15:37:26,037 - MainThread - 
+botocore.hooks - DEBUG - Event building-comma
+nd-table.lambda_update-function-code: 
+calling handler <bound method AliasSubCommand
+Injector.on_building_command_table of 
+<awscli.alias.AliasSubCommandInjector object 
+at 0x000002102B3CE660>>
+2026-03-27 15:37:26,039 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.function-name: 
+calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,039 - MainThread - 
+botocore.hooks - DEBUG - Event 
+process-cli-arg.lambda.update-function-code: 
+calling handler <function 
+validate_is_zip_file at 0x0000021029D7AFC0>
+2026-03-27 15:37:26,039 - MainThread - 
+botocore.hooks - DEBUG - Event 
+process-cli-arg.lambda.update-function-code: 
+calling handler 
+<awscli.argprocess.ParamShorthandParser 
+object at 0x000002102B3CC980>
+2026-03-27 15:37:26,039 - MainThread - 
+awscli.arguments - DEBUG - Unpacked value of 
+'pcb-scraper-dev-scrape' for parameter 
+"function_name": 'pcb-scraper-dev-scrape'
+2026-03-27 15:37:26,039 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.zip-file: calling 
+handler <awscli.paramfile.URIArgumentHandler 
+object at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.s3-bucket: 
+calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.s3-key: calling 
+handler <awscli.paramfile.URIArgumentHandler 
+object at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.s3-object-version:
+ calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.image-uri: 
+calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event 
+process-cli-arg.lambda.update-function-code: 
+calling handler <function 
+validate_is_zip_file at 0x0000021029D7AFC0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event 
+process-cli-arg.lambda.update-function-code: 
+calling handler 
+<awscli.argprocess.ParamShorthandParser 
+object at 0x000002102B3CC980>
+2026-03-27 15:37:26,040 - MainThread - 
+awscli.arguments - DEBUG - Unpacked value of 
+'009398924547.dkr.ecr.us-east-1.amazonaws.com
+/serverless-pcb-scraper-dev:v15' for 
+parameter "image_uri": '009398924547.dkr.ecr.
+us-east-1.amazonaws.com/serverless-pcb-scrape
+r-dev:v15'
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.publish: calling 
+handler <awscli.paramfile.URIArgumentHandler 
+object at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.dry-run: calling 
+handler <awscli.paramfile.URIArgumentHandler 
+object at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.revision-id: 
+calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.architectures: 
+calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.source-kms-key-arn
+: calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.publish-to: 
+calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,040 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.cli-input-json: 
+calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,041 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.cli-input-yaml: 
+calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,041 - MainThread - 
+botocore.hooks - DEBUG - Event load-cli-arg.l
+ambda.update-function-code.generate-cli-skele
+ton: calling handler 
+<awscli.paramfile.URIArgumentHandler object 
+at 0x000002102B3CF0E0>
+2026-03-27 15:37:26,041 - MainThread - 
+botocore.hooks - DEBUG - Event 
+calling-command.lambda.update-function-code: 
+calling handler <bound method 
+CliInputArgument.add_to_call_parameters of <a
+wscli.customizations.cliinput.CliInputJSONArg
+ument object at 0x000002102B641400>>
+2026-03-27 15:37:26,041 - MainThread - 
+botocore.hooks - DEBUG - Event 
+calling-command.lambda.update-function-code: 
+calling handler <bound method 
+CliInputArgument.add_to_call_parameters of <a
+wscli.customizations.cliinput.CliInputYAMLArg
+ument object at 0x000002102B641550>>
+2026-03-27 15:37:26,041 - MainThread - 
+botocore.hooks - DEBUG - Event 
+calling-command.lambda.update-function-code: 
+calling handler <bound method GenerateCliSkel
+etonArgument.generate_skeleton of <awscli.cus
+tomizations.generatecliskeleton.GenerateCliSk
+eletonArgument object at 0x000002102B6416A0>>
+2026-03-27 15:37:26,041 - MainThread - 
+botocore.credentials - DEBUG - Looking for 
+credentials via: assume-role
+2026-03-27 15:37:26,042 - MainThread - 
+botocore.credentials - DEBUG - Looking for 
+credentials via: 
+assume-role-with-web-identity
+2026-03-27 15:37:26,042 - MainThread - 
+botocore.credentials - DEBUG - Looking for 
+credentials via: sso
+2026-03-27 15:37:26,042 - MainThread - 
+botocore.credentials - DEBUG - Looking for 
+credentials via: shared-credentials-file
+2026-03-27 15:37:26,043 - MainThread - 
+botocore.credentials - INFO - Found 
+credentials in shared credentials file: 
+~/.aws/credentials
+2026-03-27 15:37:26,045 - MainThread - 
+botocore.loaders - DEBUG - Loading JSON 
+file: C:\Program Files\Amazon\AWSCLIV2\awscli
+\botocore\data\endpoints.json
+2026-03-27 15:37:26,075 - MainThread - 
+botocore.hooks - DEBUG - Event 
+choose-service-name: calling handler 
+<function handle_service_name_alias at 
+0x00000210290A20C0>
+2026-03-27 15:37:26,154 - MainThread - 
+botocore.loaders - DEBUG - Loading JSON 
+file: C:\Program Files\Amazon\AWSCLIV2\awscli
+\botocore\data\lambda\2015-03-31\endpoint-rul
+e-set-1.json
+2026-03-27 15:37:26,156 - MainThread - 
+botocore.loaders - DEBUG - Loading JSON 
+file: C:\Program Files\Amazon\AWSCLIV2\awscli
+\botocore\data\partitions.json
+2026-03-27 15:37:26,158 - MainThread - 
+botocore.hooks - DEBUG - Event 
+creating-client-class.lambda: calling 
+handler <function add_generate_presigned_url 
+at 0x00000210290259E0>
+2026-03-27 15:37:26,158 - MainThread - 
+botocore.configprovider - DEBUG - Looking 
+for endpoint for lambda via: 
+environment_service
+2026-03-27 15:37:26,158 - MainThread - 
+botocore.configprovider - DEBUG - Looking 
+for endpoint for lambda via: 
+environment_global
+2026-03-27 15:37:26,158 - MainThread - 
+botocore.configprovider - DEBUG - Looking 
+for endpoint for lambda via: config_service
+2026-03-27 15:37:26,159 - MainThread - 
+botocore.configprovider - DEBUG - Looking 
+for endpoint for lambda via: config_global
+2026-03-27 15:37:26,159 - MainThread - 
+botocore.configprovider - DEBUG - No 
+configured endpoint found.
+2026-03-27 15:37:26,161 - MainThread - 
+botocore.endpoint - DEBUG - Setting lambda 
+timeout as (60, 60)
+2026-03-27 15:37:26,163 - MainThread - 
+botocore.hooks - DEBUG - Event provide-client
+-params.lambda.UpdateFunctionCode: calling 
+handler <function base64_decode_input_blobs 
+at 0x0000021029D7B740>
+2026-03-27 15:37:26,164 - MainThread - 
+botocore.hooks - DEBUG - Event before-paramet
+er-build.lambda.UpdateFunctionCode: calling 
+handler <function generate_idempotent_uuid 
+at 0x00000210290A2480>
+2026-03-27 15:37:26,164 - MainThread - 
+botocore.hooks - DEBUG - Event before-paramet
+er-build.lambda.UpdateFunctionCode: calling 
+handler <function 
+_handle_request_validation_mode_member at 
+0x00000210290B8F40>
+2026-03-27 15:37:26,164 - MainThread - 
+botocore.regions - DEBUG - Calling endpoint 
+provider with parameters: {'Region': 
+'us-east-1', 'UseDualStack': False, 
+'UseFIPS': False}
+2026-03-27 15:37:26,164 - MainThread - 
+botocore.regions - DEBUG - Endpoint provider 
+result: 
+https://lambda.us-east-1.amazonaws.com
+2026-03-27 15:37:26,165 - MainThread - 
+botocore.hooks - DEBUG - Event 
+before-call.lambda.UpdateFunctionCode: 
+calling handler <function 
+inject_api_version_header_if_needed at 
+0x00000210290A3F60>
+2026-03-27 15:37:26,165 - MainThread - 
+botocore.endpoint - DEBUG - Making request 
+for OperationModel(name=UpdateFunctionCode) 
+with params: {'url_path': '/2015-03-31/functi
+ons/pcb-scraper-dev-scrape/code', 
+'query_string': {}, 'method': 'PUT', 
+'headers': {'Content-Type': 
+'application/json', 'User-Agent': 
+'aws-cli/2.34.6 md/awscrt#0.31.2 ua/2.1 
+os/windows#11 md/arch#amd64 
+lang/python#3.13.11 md/pyimpl#CPython 
+m/E,b,Z,n cfg/retry-mode#standard 
+md/installer#exe md/prompt#off 
+md/command#lambda.update-function-code'}, 
+'body': b'{"ImageUri": "009398924547.dkr.ecr.
+us-east-1.amazonaws.com/serverless-pcb-scrape
+r-dev:v15"}', 'url': 'https://lambda.us-east-
+1.amazonaws.com/2015-03-31/functions/pcb-scra
+per-dev-scrape/code', 'context': 
+{'client_region': 'us-east-1', 
+'client_config': <botocore.config.Config 
+object at 0x000002102B650B90>, 
+'has_streaming_input': False, 'auth_type': 
+None, 'unsigned_payload': None, 
+'auth_options': ['aws.auth#sigv4']}}
+2026-03-27 15:37:26,166 - MainThread - 
+botocore.hooks - DEBUG - Event 
+request-created.lambda.UpdateFunctionCode: 
+calling handler <bound method 
+RequestSigner.handler of 
+<botocore.signers.RequestSigner object at 
+0x000002102B6423C0>>
+2026-03-27 15:37:26,166 - MainThread - 
+botocore.hooks - DEBUG - Event 
+choose-signer.lambda.UpdateFunctionCode: 
+calling handler <function 
+set_operation_specific_signer at 
+0x00000210290A22A0>
+2026-03-27 15:37:26,166 - MainThread - 
+botocore.hooks - DEBUG - Event 
+choose-signer.lambda.UpdateFunctionCode: 
+calling handler <function 
+_set_auth_scheme_preference_signer at 
+0x00000210290B8FE0>
+2026-03-27 15:37:26,166 - MainThread - 
+botocore.auth - DEBUG - Calculating 
+signature using v4 auth.
+2026-03-27 15:37:26,167 - MainThread - 
+botocore.auth - DEBUG - CanonicalRequest:
+PUT
+/2015-03-31/functions/pcb-scraper-dev-scrape/
+code
+
+content-type:application/json
+host:lambda.us-east-1.amazonaws.com
+x-amz-date:20260327T223726Z
+
+content-type;host;x-amz-date
+95c230c7b88505fe0e4a42027dd26246662cedbee4b28
+3bfbdc5c462bb5afcf4
+2026-03-27 15:37:26,167 - MainThread - 
+botocore.auth - DEBUG - StringToSign:
+AWS4-HMAC-SHA256
+20260327T223726Z
+20260327/us-east-1/lambda/aws4_request
+7703e3abf075685b9f47a1c55ab3a42e7c6b092253367
+3c3e6724ea108c1a7d9
+2026-03-27 15:37:26,167 - MainThread - 
+botocore.auth - DEBUG - Signature:
+300186ea5aa1494f570f27fea732eccb9cbdd551e1a43
+30e045fb1737644a9c1
+2026-03-27 15:37:26,167 - MainThread - 
+botocore.hooks - DEBUG - Event 
+request-created.lambda.UpdateFunctionCode: 
+calling handler <bound method UserAgentString
+.rebuild_and_replace_user_agent_handler of 
+<botocore.useragent.UserAgentString object 
+at 0x000002102B651BD0>>
+2026-03-27 15:37:26,167 - MainThread - 
+botocore.endpoint - DEBUG - Sending http 
+request: <AWSPreparedRequest 
+stream_output=False, method=PUT, url=https://
+lambda.us-east-1.amazonaws.com/2015-03-31/fun
+ctions/pcb-scraper-dev-scrape/code, 
+headers={'Content-Type': 
+b'application/json', 'User-Agent': 
+b'aws-cli/2.34.6 md/awscrt#0.31.2 ua/2.1 
+os/windows#11 md/arch#amd64 
+lang/python#3.13.11 md/pyimpl#CPython 
+m/E,b,Z,n cfg/retry-mode#standard 
+md/installer#exe md/prompt#off 
+md/command#lambda.update-function-code', 
+'X-Amz-Date': b'20260327T223726Z', 
+'Authorization': b'AWS4-HMAC-SHA256 Credentia
+l=AKIAQEMBYGUBQRLYG3GK/20260327/us-east-1/lam
+bda/aws4_request, 
+SignedHeaders=content-type;host;x-amz-date, S
+ignature=300186ea5aa1494f570f27fea732eccb9cbd
+d551e1a4330e045fb1737644a9c1', 
+'Content-Length': '91'}>
+2026-03-27 15:37:26,168 - MainThread - 
+botocore.httpsession - DEBUG - Certificate 
+path: C:\Program Files\Amazon\AWSCLIV2\awscli
+\botocore\cacert.pem
+2026-03-27 15:37:26,168 - MainThread - 
+urllib3.connectionpool - DEBUG - Starting 
+new HTTPS connection (1): 
+lambda.us-east-1.amazonaws.com:443
+2026-03-27 15:37:27,370 - MainThread - 
+urllib3.connectionpool - DEBUG - 
+https://lambda.us-east-1.amazonaws.com:443 
+"PUT /2015-03-31/functions/pcb-scraper-dev-sc
+rape/code HTTP/1.1" 400 189
+2026-03-27 15:37:27,370 - MainThread - 
+botocore.parsers - DEBUG - Response headers: 
+{'Date': 'Fri, 27 Mar 2026 22:37:28 GMT', 
+'Content-Type': 'application/json', 
+'Content-Length': '189', 'Connection': 
+'keep-alive', 'x-amzn-RequestId': 
+'6419c4fc-ca57-406a-8528-f038204d4ac2', 
+'x-amzn-ErrorType': 
+'InvalidParameterValueException'}
+2026-03-27 15:37:27,370 - MainThread - 
+botocore.parsers - DEBUG - Response body:
+b'{"Type":"User","message":"The image 
+manifest, config or layer media type for the 
+source image 009398924547.dkr.ecr.us-east-1.a
+mazonaws.com/serverless-pcb-scraper-dev:v15 
+is not supported."}'
+2026-03-27 15:37:27,373 - MainThread - 
+botocore.parsers - DEBUG - Response headers: 
+{'Date': 'Fri, 27 Mar 2026 22:37:28 GMT', 
+'Content-Type': 'application/json', 
+'Content-Length': '189', 'Connection': 
+'keep-alive', 'x-amzn-RequestId': 
+'6419c4fc-ca57-406a-8528-f038204d4ac2', 
+'x-amzn-ErrorType': 
+'InvalidParameterValueException'}
+2026-03-27 15:37:27,373 - MainThread - 
+botocore.parsers - DEBUG - Response body:
+b'{"Type":"User","message":"The image 
+manifest, config or layer media type for the 
+source image 009398924547.dkr.ecr.us-east-1.a
+mazonaws.com/serverless-pcb-scraper-dev:v15 
+is not supported."}'
+2026-03-27 15:37:27,373 - MainThread - 
+botocore.hooks - DEBUG - Event 
+needs-retry.lambda.UpdateFunctionCode: 
+calling handler <bound method 
+RetryHandler.needs_retry of 
+<botocore.retries.standard.RetryHandler 
+object at 0x000002102BF10D70>>
+2026-03-27 15:37:27,374 - MainThread - 
+botocore.retries.standard - DEBUG - Not 
+retrying request.
+2026-03-27 15:37:27,374 - MainThread - 
+botocore.hooks - DEBUG - Event 
+after-call.lambda.UpdateFunctionCode: 
+calling handler <bound method 
+RetryQuotaChecker.release_retry_quota of 
+<botocore.retries.standard.RetryQuotaChecker 
+object at 0x000002102B643B60>>
+2026-03-27 15:37:27,375 - MainThread - 
+awscli.clidriver - DEBUG - Exception caught 
+in main()
+Traceback (most recent call last):
+  File "awscli\clidriver.py", line 550, in 
+main
+  File "awscli\clidriver.py", line 688, in 
+__call__
+  File "awscli\clidriver.py", line 905, in 
+__call__
+  File "awscli\clidriver.py", line 1041, in 
+invoke
+  File "awscli\clidriver.py", line 1055, in 
+_make_client_call
+  File "awscli\botocore\client.py", line 
+438, in _api_call
+  File "awscli\botocore\context.py", line 
+124, in wrapper
+  File "awscli\botocore\client.py", line 
+907, in _make_api_call
+botocore.errorfactory.InvalidParameterValueEx
+ception: An error occurred 
+(InvalidParameterValueException) when 
+calling the UpdateFunctionCode operation: 
+The image manifest, config or layer media 
+type for the source image 009398924547.dkr.ec
+r.us-east-1.amazonaws.com/serverless-pcb-scra
+per-dev:v15 is not supported.
+
+aws: [ERROR]: An error occurred 
+(InvalidParameterValueException) when 
+calling the UpdateFunctionCode operation: 
+The image manifest, config or layer media 
+type for the source image 009398924547.dkr.ec
+r.us-east-1.amazonaws.com/serverless-pcb-scra
+per-dev:v15 is not supported.
+
+Additional error details:
+Type: User
+message: The image manifest, config or layer 
+media type for the source image 009398924547.
+dkr.ecr.us-east-1.amazonaws.com/serverless-pc
+b-scraper-dev:v15 is not supported.

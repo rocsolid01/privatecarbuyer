@@ -1,0 +1,506 @@
+﻿{
+    "events": [
+        {
+            "timestamp": 1774651530659,
+            "message": "}\n",
+            "ingestionTime": 1774651539677
+        },
+        {
+            "timestamp": 1774651530661,
+            "message": "[INFO] Mode: pulse | Cities: ['losangeles', 'orangecounty'] | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36...\n",
+            "ingestionTime": 1774651539677
+        },
+        {
+            "timestamp": 1774651530661,
+            "message": "[INFO] Proxy: http://api.zyte.com:8011\n",
+            "ingestionTime": 1774651539677
+        },
+        {
+            "timestamp": 1774651531718,
+            "message": "[INFO] [losangeles] Initialized with 328 existing PIDs.\n",
+            "ingestionTime": 1774651539677
+        },
+        {
+            "timestamp": 1774651531798,
+            "message": "[INFO] [losangeles] Scraping: https://losangeles.craigslist.org/search/cto?purveyor=owner&sort=date&min_auto_year=2010&max_auto_year=2024&min_price=0&max_price=100000&max_auto_miles=550000&postedToday=1\n",
+            "ingestionTime": 1774651539677
+        },
+        {
+            "timestamp": 1774651534883,
+            "message": "[INFO] [losangeles] Page loaded successfully.\n",
+            "ingestionTime": 1774651539677
+        },
+        {
+            "timestamp": 1774651534900,
+            "message": "[INFO] [losangeles] Page loaded successfully. Title: los angeles cars & trucks for sale by owner - craigslist. Waiting for results...\n",
+            "ingestionTime": 1774651539677
+        },
+        {
+            "timestamp": 1774651549901,
+            "message": "[WARN] [losangeles] Timeout waiting for listing selectors. Proceeding anyway.\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651549914,
+            "message": "[INFO] [losangeles] HTML Snippet (first 2000): <!DOCTYPE html><html><head>      \t<meta charset=\"UTF-8\"> \t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"> \t<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"> \t<meta property=\"og:site_name\" content=\"craigslist\"> \t<meta name=\"twitter:card\" content=\"preview\"> \t<meta property=\"og:title\" content=\"los angeles cars &amp; trucks for sale by owner - craigslist\"> \t<meta name=\"description\" content=\"los angeles cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:description\" content=\"los angeles cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:url\" content=\"https://losangeles.craigslist.org/search/cta?purveyor=owner\"> \t<title>los angeles cars &amp; trucks for sale by owner - craigslist</title> \t<link rel=\"canonical\" href=\"https://losangeles.craigslist.org/search/cta?purveyor=owner\"> \t<link rel=\"alternate\" href=\"https://losangeles.craigslist.org/search/cta?purveyor=owner\" hreflang=\"x-default\">        <link rel=\"icon\" href=\"/favicon.ico\" id=\"favicon\">  <script type=\"application/ld+json\" id=\"ld_searchpage_data\">     {\"@context\":\"https://schema.org\",\"@type\":\"SearchResultsPage\",\"description\":\"Cars & Trucks For Sale By Owner in Los Angeles\",\"breadcrumb\":{\"@context\":\"https://schema.org\",\"itemListElement\":[{\"item\":\"https://losangeles.craigslist.org\",\"position\":1,\"@type\":\"ListItem\",\"name\":\"losangeles.craigslist.org\"},{\"@type\":\"ListItem\",\"position\":2,\"item\":\"https://losangeles.craigslist.org/search/sss\",\"name\":\"for sale\"},{\"name\":\"cars+trucks\",\"@type\":\"ListItem\",\"item\":\"https://losangeles.craigslist.org/search/cta?purveyor=owner\",\"position\":3}],\"@type\":\"BreadcrumbList\"}} </script>   <script type=\"application/ld+json\" id=\"ld_searchpage_results\">     {\"@context\":\"https://schema.org\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":\"0\",\"item\":{\"offers\":{\"price\":\"17500.00\",\"@type\":\"Offer\",\"availableAtOrFrom\":{\"address\":{\"addressLocality\":\"Cerritos\",\"addressRegion\":\"CA\",\"postalCode\":\"\",\"streetAddress\":\"\",\"addressCountry\":\"\",\"@ty\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651549920,
+            "message": "[INFO] [losangeles] Page has 322 DIV elements.\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651549938,
+            "message": "[INFO] [losangeles] Found 0 raw DOM items on page 1.\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651549938,
+            "message": "[INFO] [losangeles] No DOM items found. Attempting JSON-LD fallback...\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651549948,
+            "message": "[INFO] [losangeles] Found 77 items in JSON-LD.\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651549948,
+            "message": "[INFO] [losangeles] No items found via DOM or JSON-LD on page 1. Done.\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651549965,
+            "message": "[WARN] [losangeles] No leads found. Saved HTML to /tmp/debug-losangeles.html\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651549981,
+            "message": "[INFO] [losangeles] Collected 0 leads.\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651549981,
+            "message": "[INFO] Jitter: sleeping 3.77s\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651554111,
+            "message": "[INFO] [orangecounty] Initialized with 68 existing PIDs.\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651554124,
+            "message": "[INFO] [orangecounty] Scraping: https://orangecounty.craigslist.org/search/cto?purveyor=owner&sort=date&min_auto_year=2010&max_auto_year=2024&min_price=0&max_price=100000&max_auto_miles=550000&postedToday=1\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651556461,
+            "message": "[INFO] [orangecounty] Page loaded successfully.\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651556479,
+            "message": "[INFO] [orangecounty] Page loaded successfully. Title: orange co cars & trucks for sale by owner - craigslist. Waiting for results...\n",
+            "ingestionTime": 1774651558922
+        },
+        {
+            "timestamp": 1774651571480,
+            "message": "[WARN] [orangecounty] Timeout waiting for listing selectors. Proceeding anyway.\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571488,
+            "message": "[INFO] [orangecounty] HTML Snippet (first 2000): <!DOCTYPE html><html><head>      \t<meta charset=\"UTF-8\"> \t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"> \t<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"> \t<meta property=\"og:site_name\" content=\"craigslist\"> \t<meta name=\"twitter:card\" content=\"preview\"> \t<meta property=\"og:title\" content=\"orange co cars &amp; trucks for sale by owner - craigslist\"> \t<meta name=\"description\" content=\"orange co cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:description\" content=\"orange co cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:url\" content=\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\"> \t<title>orange co cars &amp; trucks for sale by owner - craigslist</title> \t<link rel=\"canonical\" href=\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\"> \t<link rel=\"alternate\" href=\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\" hreflang=\"x-default\">        <link rel=\"icon\" href=\"/favicon.ico\" id=\"favicon\">  <script type=\"application/ld+json\" id=\"ld_searchpage_data\">     {\"breadcrumb\":{\"@context\":\"https://schema.org\",\"itemListElement\":[{\"position\":1,\"@type\":\"ListItem\",\"name\":\"orangecounty.craigslist.org\",\"item\":\"https://orangecounty.craigslist.org\"},{\"@type\":\"ListItem\",\"name\":\"for sale\",\"item\":\"https://orangecounty.craigslist.org/search/sss\",\"position\":2},{\"position\":3,\"@type\":\"ListItem\",\"name\":\"cars+trucks\",\"item\":\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\"}],\"@type\":\"BreadcrumbList\"},\"@context\":\"https://schema.org\",\"description\":\"Cars & Trucks For Sale By Owner in Orange County, CA\",\"@type\":\"SearchResultsPage\"} </script>   <script type=\"application/ld+json\" id=\"ld_searchpage_results\">     {\"@context\":\"https://schema.org\",\"itemListElement\":[{\"@type\":\"ListItem\",\"item\":{\"name\":\"2017 BMW X3\",\"@type\":\"Product\",\"offers\":{\"price\":\"10750.00\",\"@type\":\"Offer\",\"priceCurrency\":\"USD\",\"availableAtOrFrom\":{\"@type\":\"Place\",\"geo\":{\"longitude\":-117.486698715822,\"@type\":\"\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571498,
+            "message": "[INFO] [orangecounty] Page has 162 DIV elements.\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571503,
+            "message": "[INFO] [orangecounty] Found 0 raw DOM items on page 1.\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571503,
+            "message": "[INFO] [orangecounty] No DOM items found. Attempting JSON-LD fallback...\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571509,
+            "message": "[INFO] [orangecounty] Found 39 items in JSON-LD.\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571509,
+            "message": "[INFO] [orangecounty] No items found via DOM or JSON-LD on page 1. Done.\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571524,
+            "message": "[WARN] [orangecounty] No leads found. Saved HTML to /tmp/debug-orangecounty.html\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571540,
+            "message": "[INFO] [orangecounty] Collected 0 leads.\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571599,
+            "message": "[INFO] [SCRAPER] Done scanning all cities. Found 0 total leads.\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571599,
+            "message": "[INFO] [DB] Upsert finished. Count returned: 0\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571599,
+            "message": "[INFO] Scraper execution finished. Success: True\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571600,
+            "message": "END RequestId: 505356eb-4d44-44ac-84ef-61c628360cf1\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651571600,
+            "message": "REPORT RequestId: 505356eb-4d44-44ac-84ef-61c628360cf1\tDuration: 40944.02 ms\tBilled Duration: 40945 ms\tMemory Size: 2048 MB\tMax Memory Used: 528 MB\t\n",
+            "ingestionTime": 1774651580500
+        },
+        {
+            "timestamp": 1774651593398,
+            "message": "START RequestId: 708e1e78-07b5-4677-b0c4-9f72cbd6d317 Version: $LATEST\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "[INFO] --- [VERSION] v13-cl-json-hybrid ---\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "[INFO] Lambda execution started.\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "[INFO] Payload received: {\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"run_id\": null,\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"mode\": \"pulse\",\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"dealer_id\": \"00000000-0000-0000-0000-000000000000\",\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"cities\": [\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"losangeles\",\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"orangecounty\"\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "],\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"year_min\": 2010,\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"year_max\": 2024,\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"price_min\": 0,\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"price_max\": 100000,\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"mileage_max\": 550000,\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"makes\": [\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"Toyota\",\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"Honda\",\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"Ford\",\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"Chevrolet\",\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"Nissan\",\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"Hyundai\",\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"Kia\"\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "],\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"models\": [],\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"post_age_max\": 72,\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"exclude_salvage\": false,\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"posted_today\": true,\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "\"max_items\": 25\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593399,
+            "message": "}\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593401,
+            "message": "[INFO] Mode: pulse | Cities: ['losangeles', 'orangecounty'] | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36...\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651593401,
+            "message": "[INFO] Proxy: http://api.zyte.com:8011\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651594533,
+            "message": "[INFO] [losangeles] Initialized with 328 existing PIDs.\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651594607,
+            "message": "[INFO] [losangeles] Scraping: https://losangeles.craigslist.org/search/cto?purveyor=owner&sort=date&min_auto_year=2010&max_auto_year=2024&min_price=0&max_price=100000&max_auto_miles=550000&postedToday=1\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651597347,
+            "message": "[INFO] [losangeles] Page loaded successfully.\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651597363,
+            "message": "[INFO] [losangeles] Page loaded successfully. Title: los angeles cars & trucks for sale by owner - craigslist. Waiting for results...\n",
+            "ingestionTime": 1774651602418
+        },
+        {
+            "timestamp": 1774651612365,
+            "message": "[WARN] [losangeles] Timeout waiting for listing selectors. Proceeding anyway.\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651612378,
+            "message": "[INFO] [losangeles] HTML Snippet (first 2000): <!DOCTYPE html><html><head>      \t<meta charset=\"UTF-8\"> \t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"> \t<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"> \t<meta property=\"og:site_name\" content=\"craigslist\"> \t<meta name=\"twitter:card\" content=\"preview\"> \t<meta property=\"og:title\" content=\"los angeles cars &amp; trucks for sale by owner - craigslist\"> \t<meta name=\"description\" content=\"los angeles cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:description\" content=\"los angeles cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:url\" content=\"https://losangeles.craigslist.org/search/cta?purveyor=owner\"> \t<title>los angeles cars &amp; trucks for sale by owner - craigslist</title> \t<link rel=\"canonical\" href=\"https://losangeles.craigslist.org/search/cta?purveyor=owner\"> \t<link rel=\"alternate\" href=\"https://losangeles.craigslist.org/search/cta?purveyor=owner\" hreflang=\"x-default\">        <link rel=\"icon\" href=\"/favicon.ico\" id=\"favicon\">  <script type=\"application/ld+json\" id=\"ld_searchpage_data\">     {\"@context\":\"https://schema.org\",\"@type\":\"SearchResultsPage\",\"description\":\"Cars & Trucks For Sale By Owner in Los Angeles\",\"breadcrumb\":{\"@context\":\"https://schema.org\",\"itemListElement\":[{\"item\":\"https://losangeles.craigslist.org\",\"position\":1,\"@type\":\"ListItem\",\"name\":\"losangeles.craigslist.org\"},{\"@type\":\"ListItem\",\"position\":2,\"item\":\"https://losangeles.craigslist.org/search/sss\",\"name\":\"for sale\"},{\"name\":\"cars+trucks\",\"@type\":\"ListItem\",\"item\":\"https://losangeles.craigslist.org/search/cta?purveyor=owner\",\"position\":3}],\"@type\":\"BreadcrumbList\"}} </script>   <script type=\"application/ld+json\" id=\"ld_searchpage_results\">     {\"@context\":\"https://schema.org\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":\"0\",\"item\":{\"offers\":{\"price\":\"17500.00\",\"@type\":\"Offer\",\"availableAtOrFrom\":{\"address\":{\"addressLocality\":\"Cerritos\",\"addressRegion\":\"CA\",\"postalCode\":\"\",\"streetAddress\":\"\",\"addressCountry\":\"\",\"@ty\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651612388,
+            "message": "[INFO] [losangeles] Page has 322 DIV elements.\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651612393,
+            "message": "[INFO] [losangeles] Found 0 raw DOM items on page 1.\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651612393,
+            "message": "[INFO] [losangeles] No DOM items found. Attempting JSON-LD fallback...\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651612411,
+            "message": "[INFO] [losangeles] Found 77 items in JSON-LD.\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651612411,
+            "message": "[INFO] [losangeles] No items found via DOM or JSON-LD on page 1. Done.\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651612429,
+            "message": "[WARN] [losangeles] No leads found. Saved HTML to /tmp/debug-losangeles.html\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651612445,
+            "message": "[INFO] [losangeles] Collected 0 leads.\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651612445,
+            "message": "[INFO] Jitter: sleeping 3.32s\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651616078,
+            "message": "[INFO] [orangecounty] Initialized with 68 existing PIDs.\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651616106,
+            "message": "[INFO] [orangecounty] Scraping: https://orangecounty.craigslist.org/search/cto?purveyor=owner&sort=date&min_auto_year=2010&max_auto_year=2024&min_price=0&max_price=100000&max_auto_miles=550000&postedToday=1\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651618303,
+            "message": "[INFO] [orangecounty] Page loaded successfully.\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651618311,
+            "message": "[INFO] [orangecounty] Page loaded successfully. Title: orange co cars & trucks for sale by owner - craigslist. Waiting for results...\n",
+            "ingestionTime": 1774651621382
+        },
+        {
+            "timestamp": 1774651633312,
+            "message": "[WARN] [orangecounty] Timeout waiting for listing selectors. Proceeding anyway.\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633320,
+            "message": "[INFO] [orangecounty] HTML Snippet (first 2000): <!DOCTYPE html><html><head>      \t<meta charset=\"UTF-8\"> \t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"> \t<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"> \t<meta property=\"og:site_name\" content=\"craigslist\"> \t<meta name=\"twitter:card\" content=\"preview\"> \t<meta property=\"og:title\" content=\"orange co cars &amp; trucks for sale by owner - craigslist\"> \t<meta name=\"description\" content=\"orange co cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:description\" content=\"orange co cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:url\" content=\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\"> \t<title>orange co cars &amp; trucks for sale by owner - craigslist</title> \t<link rel=\"canonical\" href=\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\"> \t<link rel=\"alternate\" href=\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\" hreflang=\"x-default\">        <link rel=\"icon\" href=\"/favicon.ico\" id=\"favicon\">  <script type=\"application/ld+json\" id=\"ld_searchpage_data\">     {\"breadcrumb\":{\"@context\":\"https://schema.org\",\"itemListElement\":[{\"position\":1,\"@type\":\"ListItem\",\"name\":\"orangecounty.craigslist.org\",\"item\":\"https://orangecounty.craigslist.org\"},{\"@type\":\"ListItem\",\"name\":\"for sale\",\"item\":\"https://orangecounty.craigslist.org/search/sss\",\"position\":2},{\"position\":3,\"@type\":\"ListItem\",\"name\":\"cars+trucks\",\"item\":\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\"}],\"@type\":\"BreadcrumbList\"},\"@context\":\"https://schema.org\",\"description\":\"Cars & Trucks For Sale By Owner in Orange County, CA\",\"@type\":\"SearchResultsPage\"} </script>   <script type=\"application/ld+json\" id=\"ld_searchpage_results\">     {\"@context\":\"https://schema.org\",\"itemListElement\":[{\"@type\":\"ListItem\",\"item\":{\"name\":\"2017 BMW X3\",\"@type\":\"Product\",\"offers\":{\"price\":\"10750.00\",\"@type\":\"Offer\",\"priceCurrency\":\"USD\",\"availableAtOrFrom\":{\"@type\":\"Place\",\"geo\":{\"longitude\":-117.486698715822,\"@type\":\"\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633324,
+            "message": "[INFO] [orangecounty] Page has 162 DIV elements.\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633328,
+            "message": "[INFO] [orangecounty] Found 0 raw DOM items on page 1.\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633328,
+            "message": "[INFO] [orangecounty] No DOM items found. Attempting JSON-LD fallback...\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633334,
+            "message": "[INFO] [orangecounty] Found 39 items in JSON-LD.\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633334,
+            "message": "[INFO] [orangecounty] No items found via DOM or JSON-LD on page 1. Done.\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633349,
+            "message": "[WARN] [orangecounty] No leads found. Saved HTML to /tmp/debug-orangecounty.html\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633365,
+            "message": "[INFO] [orangecounty] Collected 0 leads.\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633420,
+            "message": "[INFO] [SCRAPER] Done scanning all cities. Found 0 total leads.\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633420,
+            "message": "[INFO] [DB] Upsert finished. Count returned: 0\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633420,
+            "message": "[INFO] Scraper execution finished. Success: True\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633422,
+            "message": "END RequestId: 708e1e78-07b5-4677-b0c4-9f72cbd6d317\n",
+            "ingestionTime": 1774651642334
+        },
+        {
+            "timestamp": 1774651633422,
+            "message": "REPORT RequestId: 708e1e78-07b5-4677-b0c4-9f72cbd6d317\tDuration: 40023.48 ms\tBilled Duration: 40024 ms\tMemory Size: 2048 MB\tMax Memory Used: 532 MB\t\n",
+            "ingestionTime": 1774651642334
+        }
+    ],
+    "nextForwardToken": "f/39576053893100194034559297717350642745511364929340637197/s",
+    "nextBackwardToken": "b/39576051601408715197956871699611316488679284796073771038/s"
+}

@@ -86,6 +86,13 @@ export async function runScraper(settings: Settings, isDeepScrape = false, isPul
         throw new Error('LAMBDA_SCRAPER_URL is not configured. Add it to your .env file after deploying the Lambda.');
     }
 
+    // ── 0. Manual Stop Guard ─────────────────────────────────────────────
+    // If the system is pulse-scanning, but the user has manually STOPPED it, skip
+    if (isPulse && settings.auto_scan_enabled === false) {
+        console.log(`[Tiered Sniper] 🛑 SYSTEM STOPPED (Auto Scan is Disabled for ${settings.id})`);
+        return { success: true, message: 'Automated scanning is currently disabled by the user.' };
+    }
+
     // ── 1. Smart Sleep Guard ──────────────────────────────────────────────
     // Use America/Los_Angeles time for the sleep check to match user's local active hours
     const laTime = new Intl.DateTimeFormat('en-US', {

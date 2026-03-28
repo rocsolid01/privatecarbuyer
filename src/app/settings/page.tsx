@@ -357,6 +357,29 @@ export default function SettingsPage() {
         setSaving(false);
     };
 
+    const handleToggleAutoScan = async () => {
+        const newVal = !settings.auto_scan_enabled;
+        setSettings({ ...settings, auto_scan_enabled: newVal });
+        
+        // Persist immediately to cloud
+        const { error } = await supabase
+            .from('settings')
+            .update({ 
+                auto_scan_enabled: newVal,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', settings.id);
+        
+        if (error) {
+            setError('Failed to update engine state: ' + error.message);
+            // Rollback local state on error
+            setSettings({ ...settings, auto_scan_enabled: !newVal });
+        } else {
+            setSuccess(`Engine ${newVal ? 'Activated' : 'Stopped'}`);
+            setTimeout(() => setSuccess(null), 30000);
+        }
+    };
+
     const handleScan = async () => {
         setScanning(true);
         setError(null);
@@ -470,7 +493,7 @@ export default function SettingsPage() {
                                     </span>
                                 </div>
                                 <button
-                                    onClick={() => setSettings({ ...settings, auto_scan_enabled: !settings.auto_scan_enabled })}
+                                    onClick={handleToggleAutoScan}
                                     className={`ml-6 flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold uppercase tracking-widest text-xs transition-all transform active:scale-95 ${
                                         settings.auto_scan_enabled 
                                             ? 'bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 

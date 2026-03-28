@@ -116,13 +116,13 @@ export function getApifyActorInput(settings: Settings, cities: string[], isDeepS
         queries: carKeywords,
         category: 'sss',            // "For Sale" is the valid top-level category
         // BUDGET OPTIMIZATIONS:
-        scrapeDetail: isDeepScrape, // Only click through if it's a "Deep Scrape"
-        downloadImages: false,      // Save 80% proxy data; we still get URL
+        scrapeDetail: true,         // VISIT DETAIL PAGE (MANDATORY FOR MILEAGE)
+        downloadImages: false,      // Still save proxy data
         purveyor: 'owner',          // Enforce Private Sellers only
         postedToday: true,          // Only fresh leads
         minPrice: settings.price_min || 500, // Price floor
-        maxPagesPerSearch: 2,       // Tightened for even more budget safety
-        maxItems: isDeepScrape ? 50 : Math.min(500, (settings.max_items_per_city || 100) * cities.length), 
+        maxPagesPerSearch: 1,       // Single page is enough for hot zone sniper
+        maxItems: 50,               // Target 50 high-quality leads per city
         // STEALTH SETTINGS:
         ...getRandomFingerprint(),
         useSessionPool: true,

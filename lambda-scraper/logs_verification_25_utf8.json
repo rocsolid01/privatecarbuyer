@@ -1,0 +1,536 @@
+﻿{
+    "events": [
+        {
+            "timestamp": 1774655440528,
+            "message": "START RequestId: 40bbd4b5-a0d0-43fa-bbf7-5ead1e8afacc Version: $LATEST\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "[INFO] --- [VERSION] v13-cl-json-hybrid ---\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "[INFO] Lambda execution started.\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "[INFO] Payload received: {\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"run_id\": null,\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"mode\": \"pulse\",\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"dealer_id\": \"00000000-0000-0000-0000-000000000000\",\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"cities\": [\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"losangeles\",\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"orangecounty\"\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "],\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"year_min\": 2010,\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"year_max\": 2024,\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"price_min\": 0,\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"price_max\": 100000,\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"mileage_max\": 550000,\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"makes\": [\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"Toyota\",\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"Honda\",\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"Ford\",\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"Chevrolet\",\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"Nissan\",\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"Hyundai\",\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"Kia\"\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "],\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"models\": [],\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"post_age_max\": 72,\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"exclude_salvage\": false,\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"posted_today\": true,\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "\"max_items\": 25\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440530,
+            "message": "}\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440531,
+            "message": "[INFO] Mode: pulse | Cities: ['losangeles', 'orangecounty'] | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20...\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655440531,
+            "message": "[INFO] Proxy: http://api.zyte.com:8011\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655441581,
+            "message": "[INFO] [losangeles] Initialized with 352 existing PIDs.\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655441628,
+            "message": "[INFO] [losangeles] Scraping: https://losangeles.craigslist.org/search/cto?purveyor=owner&sort=date&min_auto_year=2010&max_auto_year=2024&min_price=0&max_price=100000&max_auto_miles=550000&postedToday=1\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655445819,
+            "message": "[INFO] [losangeles] Page loaded successfully.\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655445831,
+            "message": "[INFO] [losangeles] Page loaded successfully. Title: los angeles cars & trucks for sale by owner - craigslist. Waiting for results...\n",
+            "ingestionTime": 1774655449548
+        },
+        {
+            "timestamp": 1774655460838,
+            "message": "[WARN] [losangeles] Timeout waiting for listing selectors. Proceeding anyway.\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655460855,
+            "message": "[INFO] [losangeles] HTML Snippet (first 2000): <!DOCTYPE html><html><head>      \t<meta charset=\"UTF-8\"> \t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"> \t<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"> \t<meta property=\"og:site_name\" content=\"craigslist\"> \t<meta name=\"twitter:card\" content=\"preview\"> \t<meta property=\"og:title\" content=\"los angeles cars &amp; trucks for sale by owner - craigslist\"> \t<meta name=\"description\" content=\"los angeles cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:description\" content=\"los angeles cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:url\" content=\"https://losangeles.craigslist.org/search/cta?purveyor=owner\"> \t<title>los angeles cars &amp; trucks for sale by owner - craigslist</title> \t<link rel=\"canonical\" href=\"https://losangeles.craigslist.org/search/cta?purveyor=owner\"> \t<link rel=\"alternate\" href=\"https://losangeles.craigslist.org/search/cta?purveyor=owner\" hreflang=\"x-default\">        <link rel=\"icon\" href=\"/favicon.ico\" id=\"favicon\">  <script type=\"application/ld+json\" id=\"ld_searchpage_data\">     {\"description\":\"Cars & Trucks For Sale By Owner in Los Angeles\",\"@context\":\"https://schema.org\",\"breadcrumb\":{\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"item\":\"https://losangeles.craigslist.org\",\"position\":1,\"name\":\"losangeles.craigslist.org\",\"@type\":\"ListItem\"},{\"name\":\"for sale\",\"@type\":\"ListItem\",\"item\":\"https://losangeles.craigslist.org/search/sss\",\"position\":2},{\"item\":\"https://losangeles.craigslist.org/search/cta?purveyor=owner\",\"position\":3,\"name\":\"cars+trucks\",\"@type\":\"ListItem\"}],\"@context\":\"https://schema.org\"},\"@type\":\"SearchResultsPage\"} </script>   <script type=\"application/ld+json\" id=\"ld_searchpage_results\">     {\"@type\":\"ItemList\",\"itemListElement\":[{\"item\":{\"offers\":{\"@type\":\"Offer\",\"availableAtOrFrom\":{\"@type\":\"Place\",\"address\":{\"streetAddress\":\"\",\"postalCode\":\"\",\"addressCountry\":\"\",\"addressLocality\":\"Northridge\",\"addressRegion\":\"CA\",\"@type\":\"PostalAddress\"},\"geo\":{\"latitude\":34.236698\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655460862,
+            "message": "[INFO] [losangeles] Page has 342 DIV elements.\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655461008,
+            "message": "[INFO] [losangeles] Found 82 raw DOM items on page 1.\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655461165,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7924000114\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655461277,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923997784\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655461396,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923997583\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655461500,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923996291\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655461613,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923995771\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655461771,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923993846\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655461892,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923993263\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655461996,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923992076\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655462114,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923989732\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655462217,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923988373\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655462315,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923984820\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655462410,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923984109\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655462520,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923983343\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655462639,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923982850\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655462754,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923981578\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655462857,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923981353\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655462976,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923978312\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655463077,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923977322\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655463212,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923976193\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655463309,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923972403\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655463406,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923969681\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655463513,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923967991\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655463611,
+            "message": "[INFO] [losangeles] Skipping duplicate PID: 7923963020\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655464925,
+            "message": "[INFO] [losangeles] Collected 12 leads.\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655464925,
+            "message": "[INFO] Jitter: sleeping 4.13s\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655469390,
+            "message": "[INFO] [orangecounty] Initialized with 92 existing PIDs.\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655469407,
+            "message": "[INFO] [orangecounty] Scraping: https://orangecounty.craigslist.org/search/cto?purveyor=owner&sort=date&min_auto_year=2010&max_auto_year=2024&min_price=0&max_price=100000&max_auto_miles=550000&postedToday=1\n",
+            "ingestionTime": 1774655469854
+        },
+        {
+            "timestamp": 1774655471736,
+            "message": "[INFO] [orangecounty] Page loaded successfully.\n",
+            "ingestionTime": 1774655480754
+        },
+        {
+            "timestamp": 1774655471745,
+            "message": "[INFO] [orangecounty] Page loaded successfully. Title: orange co cars & trucks for sale by owner - craigslist. Waiting for results...\n",
+            "ingestionTime": 1774655480754
+        },
+        {
+            "timestamp": 1774655486746,
+            "message": "[WARN] [orangecounty] Timeout waiting for listing selectors. Proceeding anyway.\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655486758,
+            "message": "[INFO] [orangecounty] HTML Snippet (first 2000): <!DOCTYPE html><html><head>      \t<meta charset=\"UTF-8\"> \t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"> \t<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"> \t<meta property=\"og:site_name\" content=\"craigslist\"> \t<meta name=\"twitter:card\" content=\"preview\"> \t<meta property=\"og:title\" content=\"orange co cars &amp; trucks for sale by owner - craigslist\"> \t<meta name=\"description\" content=\"orange co cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:description\" content=\"orange co cars &amp; trucks for sale by owner - craigslist\"> \t<meta property=\"og:url\" content=\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\"> \t<title>orange co cars &amp; trucks for sale by owner - craigslist</title> \t<link rel=\"canonical\" href=\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\"> \t<link rel=\"alternate\" href=\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\" hreflang=\"x-default\">        <link rel=\"icon\" href=\"/favicon.ico\" id=\"favicon\">  <script type=\"application/ld+json\" id=\"ld_searchpage_data\">     {\"@context\":\"https://schema.org\",\"description\":\"Cars & Trucks For Sale By Owner in Orange County, CA\",\"@type\":\"SearchResultsPage\",\"breadcrumb\":{\"itemListElement\":[{\"name\":\"orangecounty.craigslist.org\",\"position\":1,\"@type\":\"ListItem\",\"item\":\"https://orangecounty.craigslist.org\"},{\"name\":\"for sale\",\"item\":\"https://orangecounty.craigslist.org/search/sss\",\"position\":2,\"@type\":\"ListItem\"},{\"item\":\"https://orangecounty.craigslist.org/search/cta?purveyor=owner\",\"@type\":\"ListItem\",\"position\":3,\"name\":\"cars+trucks\"}],\"@type\":\"BreadcrumbList\",\"@context\":\"https://schema.org\"}} </script>   <script type=\"application/ld+json\" id=\"ld_searchpage_results\">     {\"@context\":\"https://schema.org\",\"@type\":\"ItemList\",\"itemListElement\":[{\"position\":\"0\",\"@type\":\"ListItem\",\"item\":{\"@context\":\"http://schema.org\",\"offers\":{\"availableAtOrFrom\":{\"address\":{\"postalCode\":\"\",\"streetAddress\":\"\",\"@type\":\"PostalAddress\",\"addressRegion\":\"CA\",\"a\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655486763,
+            "message": "[INFO] [orangecounty] Page has 163 DIV elements.\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655486832,
+            "message": "[INFO] [orangecounty] Found 39 raw DOM items on page 1.\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655486979,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923999965\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655487092,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923994324\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655487202,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923988391\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655487301,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923985603\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655487405,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923981399\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655487506,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923979561\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655487628,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923974788\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655487747,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923970583\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655487856,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923969904\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655487970,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923968401\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655488085,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923957580\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655488177,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923957467\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655488278,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923957362\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655488398,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923957186\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655488506,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923946889\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655488606,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923932412\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655488721,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923930979\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655488846,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923929955\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655488985,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923928395\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655489098,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923924579\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655489216,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923922489\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655489325,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923920950\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655489440,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923910084\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655489548,
+            "message": "[INFO] [orangecounty] Skipping duplicate PID: 7923907012\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655490835,
+            "message": "[INFO] [orangecounty] Collected 12 leads.\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655490882,
+            "message": "[INFO] [SCRAPER] Done scanning all cities. Found 24 total leads.\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655490882,
+            "message": "[INFO] [DB] First lead preview: 2013 Chevy 3500HD Contractors Utility Truck\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655491544,
+            "message": "[INFO] [DB] Inserted 24 new leads.\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655491544,
+            "message": "[INFO] [DB] Upsert finished. Count returned: 24\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655491544,
+            "message": "[INFO] Scraper execution finished. Success: True\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655491546,
+            "message": "END RequestId: 40bbd4b5-a0d0-43fa-bbf7-5ead1e8afacc\n",
+            "ingestionTime": 1774655495762
+        },
+        {
+            "timestamp": 1774655491547,
+            "message": "REPORT RequestId: 40bbd4b5-a0d0-43fa-bbf7-5ead1e8afacc\tDuration: 51017.73 ms\tBilled Duration: 51018 ms\tMemory Size: 2048 MB\tMax Memory Used: 546 MB\t\n",
+            "ingestionTime": 1774655495762
+        }
+    ],
+    "nextForwardToken": "f/39576139932162763115519710313352622629225484166390153251/s",
+    "nextBackwardToken": "b/39576138794401043831685848199472349099865165773120995328/s"
+}

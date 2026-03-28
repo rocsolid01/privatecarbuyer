@@ -4,6 +4,46 @@ import { scoreLead, generateOutreachSMS } from '@/lib/ai';
 import { sendSMS } from '@/lib/sms';
 import { calculateDistance, geocodeLocation } from '@/lib/geo';
 
+function extractMileageFromText(title: string, description: string): number | null {
+    const text = `${title} ${description}`;
+    
+    // Pattern 1: 120k, 120K, 120k miles
+    const kPattern = /\b(\d+(?:\.\d+)?)\s*k\b/i;
+    const kMatch = text.match(kPattern);
+    if (kMatch) {
+        return Math.round(parseFloat(kMatch[1]) * 1000);
+    }
+
+    // Pattern 2: 120,000 miles, 120000 mi
+    const fullPattern = /\b(\d{1,3}(?:[,\s]\d{3})*|\d{4,})\s*(?:miles|mi|mileage|odometer)\b/i;
+    const fullMatch = text.match(fullPattern);
+    if (fullMatch) {
+        return parseInt(fullMatch[1].replace(/[,\s]/g, ''));
+    }
+
+    // Pattern 3: Trailing numbers in title often mean mileage if 4-6 digits
+    const endPattern = /\s+(\d{4,6})\s*$/;
+    const endMatch = title.match(endPattern);
+    if (endMatch) {
+        return parseInt(endMatch[1]);
+    }
+
+    return null;
+}
+
+function extractTitleStatus(title: string, description: string): string {
+    const text = `${title} ${description}`.toLowerCase();
+    if (text.includes('salvage') || text.includes('rebuilt') || text.includes('theft') || text.includes('reconstructed') || text.includes('branded')) {
+        return 'Salvage';
+    }
+    return 'Clean';
+}
+
+function extractYear(title: string): number | null {
+    const yearMatch = title.match(/\b(19|20)\d{2}\b/);
+    return yearMatch ? parseInt(yearMatch[0]) : null;
+}
+
 export async function POST(req: NextRequest) {
     try {
         const payload = await req.json();
@@ -29,7 +69,7 @@ export async function POST(req: NextRequest) {
         const processedLeads = [];
 
         for (const item of leads) {
-            // Mapping for fatihtahta/craigslist-scraper (handles both capitalized and lowercase):
+            // 1. Basic Mapping
             const title = item.Title || item.title || 'Unknown Title';
             const priceVal = item.Price || item.price || item.price_text || item['Price Text'];
             const url = item['Listing URL'] || item.url || item.url_text;
@@ -37,50 +77,9 @@ export async function POST(req: NextRequest) {
             const locationStr = item.Location || item.location || item.address || 'Unknown';
             const photos = item['Image URLs'] || item.image_urls || item.images || [];
             const description = item.Description || item.description || '';
+            const externalId = item.id || item.pid || item['Post ID'] || url || Math.random().toString();
 
-            // Extract attributes from fatihtahta's Attributes object or array
-            let mileage = null;
-            let vin = null;
-            const attributes = item.Attributes || item.attributes || {};
-
-            if (Array.isArray(attributes)) {
-                const odometerAttr = attributes.find((a: any) => a.label?.toLowerCase() === 'odometer');
-                if (odometerAttr) mileage = parseInt(odometerAttr.value?.replace(/[^0-9]/g, '') || '0');
-                const vinAttr = attributes.find((a: any) => a.label?.toLowerCase() === 'vin');
-                if (vinAttr) vin = vinAttr.value;
-            } else if (typeof attributes === 'object') {
-                // Object format: { "odometer": "3,500", "title status": "clean", ... }
-                const odoKey = Object.keys(attributes).find(k => k.toLowerCase() === 'odometer');
-                if (odoKey) mileage = parseInt(attributes[odoKey]?.replace(/[^0-9]/g, '') || '0');
-                const vinKey = Object.keys(attributes).find(k => k.toLowerCase() === 'vin');
-                if (vinKey) vin = attributes[vinKey];
-            }
-
-            // 0. Filter by age
-            const postDate = new Date(postedAt);
-            const ageInHours = (new Date().getTime() - postDate.getTime()) / (1000 * 60 * 60);
-            
-            // RELAXED FILTER: Using 30 days (720h) as a safe floor to ensure we capture data
-            const maxAge = Math.max(settings?.post_age_max || 1, 720); 
-            
-            console.log(`[Webhook] Lead: "${title}" | postedAt raw: "${postedAt}" | ageInHours: ${ageInHours.toFixed(1)} | maxAge: ${maxAge}`);
-
-            if (ageInHours > maxAge) {
-                console.log(`[Webhook] SKIPPING old lead: ${title} (${ageInHours.toFixed(1)}h old, limit ${maxAge}h)`);
-                continue;
-            }
-
-            // 1. Identify Active Scrape Run
-            const { data: activeRun } = await supabase
-                .from('scrape_runs')
-                .select('id, leads_found')
-                .eq('dealer_id', dealerId)
-                .order('started_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-
-            // 1.1 Deduplication Check
-            const externalId = item.id || item.pid || item['Post ID'] || item.pid || url || Math.random().toString();
+            // 2. Deduplication Check
             const { data: existingLead } = await supabase
                 .from('leads')
                 .select('id')
@@ -92,24 +91,41 @@ export async function POST(req: NextRequest) {
                 continue;
             }
 
-            // ... (Rest of processing)
+            // 3. Attribute Extraction (Deep Scrape Mode)
+            let mileage = null;
+            let vin = null;
+            const attributes = item.Attributes || item.attributes || {};
 
-            if (processedLeads.length > 0) {
-                // ... (Insert leads)
-
-                // Update Run Yield
-                if (activeRun) {
-                    await supabase
-                        .from('scrape_runs')
-                        .update({ leads_found: (activeRun.leads_found || 0) + processedLeads.length })
-                        .eq('id', activeRun.id);
-                }
+            if (Array.isArray(attributes)) {
+                const odometerAttr = attributes.find((a: any) => a.label?.toLowerCase() === 'odometer');
+                if (odometerAttr) mileage = parseInt(odometerAttr.value?.replace(/[^0-9]/g, '') || '0');
+                const vinAttr = attributes.find((a: any) => a.label?.toLowerCase() === 'vin');
+                if (vinAttr) vin = vinAttr.value;
+            } else if (typeof attributes === 'object') {
+                const odoKey = Object.keys(attributes).find(k => k.toLowerCase() === 'odometer');
+                if (odoKey) mileage = parseInt(attributes[odoKey]?.replace(/[^0-9]/g, '') || '0');
+                const vinKey = Object.keys(attributes).find(k => k.toLowerCase() === 'vin');
+                if (vinKey) vin = attributes[vinKey];
             }
 
-            // 2. Calculate distance
+            // Fallback Extraction (Title/Description Regex)
+            if (mileage === null || mileage === 0) {
+                mileage = extractMileageFromText(title, description);
+            }
+
+            const titleStatus = extractTitleStatus(title, description);
+            const carYear = extractYear(title) || (item.year ? parseInt(item.year) : null);
+
+            if (!vin && (item.VIN || item.vin)) {
+                vin = item.VIN || item.vin;
+            }
+
+            console.log(`[DEBUG Webhook] Lead: ${title} | Extracted Mileage: ${mileage}`);
+
+            // 4. Geocoding & Distance
             const itemLocation = await geocodeLocation(locationStr);
             let distance = null;
-            if (itemLocation) {
+            if (itemLocation && dealerLocation) {
                 distance = calculateDistance(
                     dealerLocation.lat,
                     dealerLocation.lon,
@@ -118,7 +134,7 @@ export async function POST(req: NextRequest) {
                 );
             }
 
-            // 3. AI Scoring
+            // 5. AI Scoring
             const rawPrice = typeof priceVal === 'number' ? priceVal : parseFloat(priceVal?.toString().replace(/[^0-9.]/g, '') || '0');
             const cleanedPrice = isNaN(rawPrice) ? 0 : rawPrice;
 
@@ -145,140 +161,47 @@ export async function POST(req: NextRequest) {
                 title: title,
                 price: cleanedPrice,
                 mileage: mileage,
+                year: carYear,
                 vin: vin,
                 location: locationStr,
                 distance: distance,
                 url: url,
                 photos: photos,
                 post_time: postedAt,
-                ai_margin_est: aiAnalysis.margin_estimate,
+                ai_margin: aiAnalysis.margin_estimate,
                 ai_recon_est: aiAnalysis.recon_estimate,
                 ai_notes: aiAnalysis.notes,
                 status: 'New',
+                title_status: titleStatus,
+                is_clean_title: titleStatus === 'Clean',
                 dealer_id: dealerId,
             };
 
             processedLeads.push(leadData);
 
-            // 4. CRM Webhook Relay (New)
-            if (settings?.crm_webhook_url) {
-                console.log(`[CRM] Relaying lead ${externalId} to CRM.`);
-                fetch(settings.crm_webhook_url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ event: 'new_lead', lead: leadData })
-                }).catch(err => console.error('[CRM] Webhook Failed:', err));
-            }
-
-            // 5. Automated Outreach (Full Sniper Strategy)
-            const smsEnabled = settings?.sms_auto_enabled ?? false;
-
-            // Age & Mileage Safeguards (Rank 2 & 3)
-            const minSmsYear = settings?.sms_year_min || 2018;
-            const maxSmsYear = (settings as any).sms_year_max || 2026;
-            const maxSmsMileage = settings?.sms_max_mileage || 100000;
-
-            // Financial Sweet Spot (Rank 4)
-            const minSmsPrice = (settings as any).sms_price_min || 8000;
-            const maxSmsPrice = (settings as any).sms_price_max || 25000;
-            const minSmsMargin = settings?.sms_min_margin || 2000;
-
-            // Selection Logic (Rank 1 & 10)
-            const priorityModels = (settings as any).priority_models || [];
-            const allowedBodyStyles = (settings as any).body_styles || [];
-
-            // Signals (Rank 6, 7 & 9)
-            const requireVin = settings?.sms_require_vin || true;
-            const blacklistedKeywords = settings?.sms_exclude_keywords || [];
-            const motivationKeywords = (settings as any).motivation_keywords || [];
-
-            // Feature Extraction
-            const yearMatch = title.match(/\b(19|20)\d{2}\b/);
-            const carYear = yearMatch ? parseInt(yearMatch[0]) : 0;
-
-            const lowerTitle = title.toLowerCase();
-            const lowerDesc = description.toLowerCase();
-
-            const isPriorityModel = priorityModels.some((model: string) => lowerTitle.includes(model.toLowerCase()));
-            const isBlacklisted = blacklistedKeywords.some((word: string) =>
-                lowerTitle.includes(word.toLowerCase()) || lowerDesc.includes(word.toLowerCase())
-            );
-            const hasMotivation = motivationKeywords.some((word: string) =>
-                lowerTitle.includes(word.toLowerCase()) || lowerDesc.includes(word.toLowerCase())
-            );
-
-            // Body Style Check (Mock logic - AI Usually labels this, but we'll check title/desc for now)
-            const matchesBodyStyle = allowedBodyStyles.length === 0 ||
-                allowedBodyStyles.some((style: string) => lowerTitle.includes(style.toLowerCase()) || lowerDesc.includes(style.toLowerCase()));
-
-            const isIdealCandidate =
-                smsEnabled &&
-                !isBlacklisted &&
-                (carYear >= minSmsYear && carYear <= maxSmsYear) &&
-                (mileage === null || mileage <= maxSmsMileage) &&
-                ((leadData.price || 0) >= minSmsPrice && (leadData.price || 0) <= maxSmsPrice) &&
-                (aiAnalysis.margin_estimate >= minSmsMargin) &&
-                (!requireVin || !!vin) &&
-                matchesBodyStyle &&
-                (isPriorityModel || hasMotivation || aiAnalysis.margin_estimate > (minSmsMargin + 1000));
-
-            if (isIdealCandidate) {
-                const smsContent = await generateOutreachSMS(
-                    title,
-                    leadData.price || 0,
-                    leadData.location,
-                    settings?.ai_persona,
-                    settings?.outreach_sms_goal
-                );
-
-                if (item.sellerPhone) {
-                    const smsResult = await sendSMS(item.sellerPhone, smsContent);
-                    if (smsResult.success) {
-                        leadData.status = 'Contacted';
-                    }
-                }
-            }
-
-            // Phase 4: Unicorn Auto-Extraction
+            // 6. Outreach & Scaling Logic
             const unicornThreshold = settings?.unicorn_threshold || 4000;
             if (aiAnalysis.margin_estimate >= unicornThreshold) {
-                console.log(`[Unicorn] Massive margin detected ($${aiAnalysis.margin_estimate}). Triggering Auto-Deep-Scrape.`);
                 import('@/lib/apify').then(({ runDeepScrape }) => {
-                    runDeepScrape(leadData.url).catch(err => console.error('[Unicorn] Auto-Deep-Scrape Failed:', err));
+                    runDeepScrape(leadData.url).catch(() => {});
                 });
             }
-
-            // Phase 5: Unicorn Push Notification (SMS to Dealer)
-            if (aiAnalysis.margin_estimate >= unicornThreshold) {
-                const dealerPhone = settings?.sms_numbers?.[0];
-                if (dealerPhone) {
-                    const alertMsg = `🚨 UNICORN ALERT: ${item.title} ($${leadData.price}) has a potential $${aiAnalysis.margin_estimate} margin! Link: ${item.url}`;
-                    sendSMS(dealerPhone, alertMsg).catch(err => console.error('[Unicorn] SMS Alert Failed:', err));
-                }
-            }
         }
 
+        // Finalize Batch
         if (processedLeads.length > 0) {
-            // Deduplicate in-memory just in case the same payload has duplicates
-            const uniqueLeads = Array.from(new Map(processedLeads.map(l => [l.external_id, l])).values());
+            const { error: insertError } = await supabase.from('leads').insert(processedLeads);
+            if (insertError) throw insertError;
 
-            const { error: insertError } = await supabase
-                .from('leads')
-                .insert(uniqueLeads);
-
-            if (insertError) {
-                console.error('Supabase Insert Error:', insertError);
-                throw insertError;
+            // Update Yield
+            const { data: activeRun } = await supabase.from('scrape_runs').select('id, leads_found').eq('dealer_id', dealerId).order('started_at', { ascending: false }).limit(1).maybeSingle();
+            if (activeRun) {
+                await supabase.from('scrape_runs').update({ leads_found: (activeRun.leads_found || 0) + processedLeads.length }).eq('id', activeRun.id);
             }
-        }
-
-        // Autonomous Scaling: Update consecutive_empty_runs in settings
-        if (processedLeads.length === 0) {
+            await supabase.from('settings').update({ consecutive_empty_runs: 0 }).eq('id', dealerId);
+        } else {
             const { data: s } = await supabase.from('settings').select('consecutive_empty_runs').eq('id', dealerId).single();
             await supabase.from('settings').update({ consecutive_empty_runs: (s?.consecutive_empty_runs || 0) + 1 }).eq('id', dealerId);
-        } else {
-            // Reset if any leads found
-            await supabase.from('settings').update({ consecutive_empty_runs: 0 }).eq('id', dealerId);
         }
 
         return Response.json({ success: true, count: processedLeads.length });

@@ -1,0 +1,32 @@
+﻿{
+    "repositories": [
+        {
+            "repositoryArn": "arn:aws:ecr:us-east-1:009398924547:repository/pcb-scraper",
+            "registryId": "009398924547",
+            "repositoryName": "pcb-scraper",
+            "repositoryUri": "009398924547.dkr.ecr.us-east-1.amazonaws.com/pcb-scraper",
+            "createdAt": "2026-03-13T11:32:41.785000-07:00",
+            "imageTagMutability": "MUTABLE",
+            "imageScanningConfiguration": {
+                "scanOnPush": false
+            },
+            "encryptionConfiguration": {
+                "encryptionType": "AES256"
+            }
+        },
+        {
+            "repositoryArn": "arn:aws:ecr:us-east-1:009398924547:repository/serverless-pcb-scraper-dev",
+            "registryId": "009398924547",
+            "repositoryName": "serverless-pcb-scraper-dev",
+            "repositoryUri": "009398924547.dkr.ecr.us-east-1.amazonaws.com/serverless-pcb-scraper-dev",
+            "createdAt": "2026-03-13T00:49:18.096000-07:00",
+            "imageTagMutability": "MUTABLE",
+            "imageScanningConfiguration": {
+                "scanOnPush": false
+            },
+            "encryptionConfiguration": {
+                "encryptionType": "AES256"
+            }
+        }
+    ]
+}

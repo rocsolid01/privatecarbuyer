@@ -1,0 +1,323 @@
+﻿
+node.exe : Initializing
+At C:\Program Files\nodejs\npx.ps1:29 char:3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified:  
+   (Initializing:String) [], RemoteExceptio  
+  n
+    + FullyQualifiedErrorId : NativeCommandE 
+   rror
+ 
+Initializing
+Resolving variables
+Authenticating
+Resolving variables
+Checking AWS credentials
+Resolving variables
+Loading service details
+Deploying "pcb-scraper" to stage "dev" 
+(us-east-1)
+Packaging
+Building image "scraper-image-v14"
+#0 building with "desktop-linux" instance 
+using docker driver
+
+#1 [internal] load build definition from 
+Dockerfile
+#1 transferring dockerfile: 1.77kB 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for 
+public.ecr.aws/lambda/python:3.12
+#2 DONE 0.3s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 68B done
+#4 DONE 0.0s
+
+#5 [1/8] FROM public.ecr.aws/lambda/python:3.
+12@sha256:2cc38ec953ce3e34602cbc71018b287940c
+99f796865ece1db55f84f3066da7b
+#5 resolve public.ecr.aws/lambda/python:3.12@
+sha256:2cc38ec953ce3e34602cbc71018b287940c99f
+796865ece1db55f84f3066da7b 0.1s done
+#5 DONE 0.1s
+
+#6 [6/8] RUN pip install --no-cache-dir -r 
+requirements.txt --target "/var/task"
+#6 CACHED
+
+#7 [7/8] RUN python -m playwright install 
+chromium
+#7 CACHED
+
+#8 [2/8] RUN dnf install -y     atk     
+cups-libs     gtk3     libXcomposite     
+libXcursor     libXdamage     libXext     
+libXi     libXrandr     libXtst     pango    
+ at-spi2-core     libdrm     mesa-libgbm     
+libxshmfence     nss     nspr     alsa-lib   
+  libxkbcommon     && dnf clean all
+#8 CACHED
+
+#9 [3/8] RUN echo "Rebuild: 
+2026-03-27-pid-mileage-fix-v15" > /build_info
+#9 CACHED
+
+#10 [4/8] COPY requirements.txt .
+#10 CACHED
+
+#11 [5/8] RUN pip install --upgrade pip
+#11 CACHED
+
+#12 [8/8] COPY scraper.py /var/task/
+#12 CACHED
+
+#13 exporting to image
+#13 exporting layers done
+#13 exporting manifest sha256:01e00236b25a985
+758003aeeb65b83fb095b35b4f3a3741c3d4ba0425ea9
+fdfe done
+#13 exporting config sha256:80476c006eb685490
+26853886aeb6223cd3041ff9dd25fc1d0aac244d3de99
+56 done
+#13 exporting attestation manifest sha256:92a
+00e3f762e7d60f8cde162df1f74e9df356fbe14b322a6
+06c9f2141ef5bace 0.0s done
+#13 exporting manifest list sha256:79f9d92567
+577cf8449c312fb4f5baec1b4bf4a416ce32ef8ffe160
+cf3fa9d23
+#13 exporting manifest list sha256:79f9d92567
+577cf8449c312fb4f5baec1b4bf4a416ce32ef8ffe160
+cf3fa9d23 0.0s done
+#13 naming to docker.io/library/serverless-pc
+b-scraper-dev:scraper-image-v14 done
+#13 unpacking to docker.io/library/serverless
+-pcb-scraper-dev:scraper-image-v14 0.0s done
+#13 DONE 0.3s
+Tagging image "scraper-image-v14"
+
+Uploading image "scraper-image-v14"
+The push refers to repository [009398924547.d
+kr.ecr.us-east-1.amazonaws.com/serverless-pcb
+-scraper-dev]
+2b41ceae387a: Waiting
+a0312ad6ee87: Waiting
+2a6bd9fbfd5c: Waiting
+6c299dc85865: Waiting
+a11c1894291d: Waiting
+2b41ceae387a: Waiting
+9bb4165095f4: Waiting
+5ce1e8e3ccdc: Waiting
+c3a3d865b5d4: Waiting
+9d6aa77db478: Waiting
+aa65d2d88b64: Waiting
+0a02e566f822: Waiting
+723fd0aafe20: Waiting
+ffa605dd3660: Waiting
+8d8e1ec2925f: Waiting
+aa65d2d88b64: Waiting
+0a02e566f822: Waiting
+723fd0aafe20: Waiting
+ffa605dd3660: Waiting
+8d8e1ec2925f: Waiting
+a0312ad6ee87: Waiting
+2a6bd9fbfd5c: Waiting
+6c299dc85865: Waiting
+a11c1894291d: Waiting
+2b41ceae387a: Waiting
+9bb4165095f4: Waiting
+5ce1e8e3ccdc: Waiting
+c3a3d865b5d4: Waiting
+9d6aa77db478: Waiting
+c3a3d865b5d4: Waiting
+9d6aa77db478: Waiting
+aa65d2d88b64: Waiting
+0a02e566f822: Waiting
+723fd0aafe20: Waiting
+ffa605dd3660: Waiting
+8d8e1ec2925f: Waiting
+a0312ad6ee87: Waiting
+2a6bd9fbfd5c: Waiting
+6c299dc85865: Waiting
+a11c1894291d: Waiting
+2b41ceae387a: Waiting
+9bb4165095f4: Waiting
+5ce1e8e3ccdc: Waiting
+2a6bd9fbfd5c: Waiting
+6c299dc85865: Waiting
+a11c1894291d: Waiting
+2b41ceae387a: Waiting
+9bb4165095f4: Waiting
+5ce1e8e3ccdc: Waiting
+c3a3d865b5d4: Waiting
+9d6aa77db478: Waiting
+aa65d2d88b64: Waiting
+0a02e566f822: Waiting
+723fd0aafe20: Waiting
+ffa605dd3660: Waiting
+8d8e1ec2925f: Waiting
+a0312ad6ee87: Waiting
+ffa605dd3660: Waiting
+8d8e1ec2925f: Waiting
+a0312ad6ee87: Waiting
+2a6bd9fbfd5c: Waiting
+6c299dc85865: Waiting
+a11c1894291d: Waiting
+2b41ceae387a: Waiting
+9bb4165095f4: Waiting
+5ce1e8e3ccdc: Waiting
+c3a3d865b5d4: Waiting
+9d6aa77db478: Waiting
+aa65d2d88b64: Waiting
+0a02e566f822: Waiting
+723fd0aafe20: Waiting
+2b41ceae387a: Waiting
+9bb4165095f4: Waiting
+5ce1e8e3ccdc: Waiting
+c3a3d865b5d4: Waiting
+9d6aa77db478: Waiting
+aa65d2d88b64: Waiting
+0a02e566f822: Waiting
+723fd0aafe20: Waiting
+ffa605dd3660: Waiting
+8d8e1ec2925f: Waiting
+a0312ad6ee87: Waiting
+2a6bd9fbfd5c: Waiting
+6c299dc85865: Waiting
+a11c1894291d: Waiting
+2b41ceae387a: Waiting
+9bb4165095f4: Waiting
+5ce1e8e3ccdc: Waiting
+c3a3d865b5d4: Waiting
+9d6aa77db478: Waiting
+aa65d2d88b64: Waiting
+0a02e566f822: Waiting
+723fd0aafe20: Waiting
+ffa605dd3660: Waiting
+8d8e1ec2925f: Waiting
+a0312ad6ee87: Waiting
+2a6bd9fbfd5c: Waiting
+6c299dc85865: Waiting
+a11c1894291d: Waiting
+2b41ceae387a: Waiting
+9bb4165095f4: Waiting
+5ce1e8e3ccdc: Waiting
+c3a3d865b5d4: Waiting
+9d6aa77db478: Waiting
+aa65d2d88b64: Waiting
+0a02e566f822: Waiting
+723fd0aafe20: Waiting
+ffa605dd3660: Waiting
+8d8e1ec2925f: Waiting
+a0312ad6ee87: Waiting
+2a6bd9fbfd5c: Waiting
+6c299dc85865: Waiting
+a11c1894291d: Waiting
+c3a3d865b5d4: Layer already exists
+9d6aa77db478: Layer already exists
+aa65d2d88b64: Layer already exists
+0a02e566f822: Waiting
+723fd0aafe20: Layer already exists
+ffa605dd3660: Layer already exists
+8d8e1ec2925f: Layer already exists
+a0312ad6ee87: Layer already exists
+2a6bd9fbfd5c: Layer already exists
+6c299dc85865: Layer already exists
+a11c1894291d: Waiting
+2b41ceae387a: Waiting
+9bb4165095f4: Layer already exists
+5ce1e8e3ccdc: Layer already exists
+a11c1894291d: Layer already exists
+2b41ceae387a: Waiting
+0a02e566f822: Layer already exists
+2b41ceae387a: Pushed
+scraper-image-v14: digest: sha256:79f9d925675
+77cf8449c312fb4f5baec1b4bf4a416ce32ef8ffe160c
+f3fa9d23 size: 856
+Packaging
+[!] Function scrape has a timeout of 300 
+seconds, but it is attached to an API 
+Gateway with a timeout of 29 seconds. 
+Retrieving AWS CloudFormation stack
+Uploading
+Uploading (0/0)
+Uploading CloudFormation file to S3
+Uploading State file to S3
+Updating AWS CloudFormation stack
+  UPDATE_IN_PROGRESS - 
+AWS::CloudFormation::Stack - pcb-scraper-dev
+  UPDATE_IN_PROGRESS - AWS::Lambda::Function 
+- ScrapeLambdaFunction
+  UPDATE_FAILED - AWS::Lambda::Function - 
+ScrapeLambdaFunction
+  UPDATE_ROLLBACK_IN_PROGRESS - 
+AWS::CloudFormation::Stack - pcb-scraper-dev
+  UPDATE_IN_PROGRESS - AWS::Lambda::Function 
+- ScrapeLambdaFunction
+  UPDATE_COMPLETE - AWS::Lambda::Function - 
+ScrapeLambdaFunction
+  
+UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS 
+- AWS::CloudFormation::Stack - 
+pcb-scraper-dev
+  UPDATE_ROLLBACK_COMPLETE - 
+AWS::CloudFormation::Stack - pcb-scraper-dev
+Γ£û Stack pcb-scraper-dev failed to deploy 
+(65s)
+Finalizing
+
+Γ£û ServerlessError2: An error occurred: 
+ScrapeLambdaFunction - Resource handler 
+returned message: "The image manifest, 
+config or layer media type for the source 
+image 009398924547.dkr.ecr.us-east-1.amazonaw
+s.com/serverless-pcb-scraper-dev@sha256:79f9d
+92567577cf8449c312fb4f5baec1b4bf4a416ce32ef8f
+fe160cf3fa9d23 is not supported. (Service: 
+Lambda, Status Code: 400, Request ID: 
+f0f03fc3-b205-4a10-9d1a-a5c64f6cd89c) (SDK 
+Attempt Count: 1)" (RequestToken: 
+c1a46a26-d778-8dc8-a2cc-79c4a8d94b55, 
+HandlerErrorCode: InvalidRequest).
+    at file:///C:/Users/Minh/.serverless/rele
+ases/4.33.0/package/dist/sf-core.js:1702:828
+    at process.processTicksAndRejections 
+(node:internal/process/task_queues:105:5)
+    at async AwsDeploy.update (file:///C:/Use
+rs/Minh/.serverless/releases/4.33.0/package/d
+ist/sf-core.js:1702:30585)
+    at async aws:deploy:deploy:updateStack (f
+ile:///C:/Users/Minh/.serverless/releases/4.3
+3.0/package/dist/sf-core.js:1713:8006)
+    at async PluginManager.runHooks (file:///
+C:/Users/Minh/.serverless/releases/4.33.0/pac
+kage/dist/sf-core.js:2273:11241)
+    at async PluginManager.invoke (file:///C:
+/Users/Minh/.serverless/releases/4.33.0/packa
+ge/dist/sf-core.js:2273:12010)
+    at async PluginManager.spawn (file:///C:/
+Users/Minh/.serverless/releases/4.33.0/packag
+e/dist/sf-core.js:2273:12375)
+    at async PluginManager.runHooks (file:///
+C:/Users/Minh/.serverless/releases/4.33.0/pac
+kage/dist/sf-core.js:2273:11241)
+    at async PluginManager.invoke (file:///C:
+/Users/Minh/.serverless/releases/4.33.0/packa
+ge/dist/sf-core.js:2273:12010)
+    at async PluginManager.run (file:///C:/Us
+ers/Minh/.serverless/releases/4.33.0/package/
+dist/sf-core.js:2273:12746)
+
+For help, try the following:
+  ΓÇó Run the command again with the 
+"--debug" option
+  ΓÇó Run "serverless support"
+  ΓÇó Review the docs: 
+https://www.serverless.com/framework/docs/
+

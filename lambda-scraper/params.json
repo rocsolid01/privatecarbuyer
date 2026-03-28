@@ -1,0 +1,4 @@
+{
+    "FunctionName": "pcb-scraper-dev-scrape",
+    "ImageUri": "009398924547.dkr.ecr.us-east-1.amazonaws.com/serverless-pcb-scraper-dev:v15"
+}
