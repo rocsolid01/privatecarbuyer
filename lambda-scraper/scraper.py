@@ -136,38 +136,38 @@ def _extract_mileage_from_meta(text: str) -> Optional[int]:
     if not text:
         return None
     
-    # regex matches: numbers followed by 'k' (optional) and 'mi' or 'miles'
-    # Support commas in the number
-    pattern = r'([\d.,]+k?)\s*(?:mi|miles?)'
+    # 1. Broadening Regex: Support raw numbers, k suffix, and comma separators
+    # Pattern 1: numbers + 'k' (optional) + 'mi' or 'miles' (optional)
+    # Examples: 110k mi, 91,000 miles, 117k, 117000, 117.5k
+    pattern = r'(\b\d{1,3}(?:[,\s]\d{3})*k?|\b\d{4,6}k?|\b\d+(?:\.\d+)?k)\s*(?:mi|miles?|odometer)?'
     
     for match in re.finditer(pattern, text, re.IGNORECASE):
-        val_str = match.group(1).lower()
+        val_str = match.group(1).lower().replace(',', '').replace(' ', '')
         full_match = match.group(0).lower()
         
-        # Check surrounding for 'away' or 'from' to skip distance (e.g. '1 mi away')
-        # Also check if it's a very low number being used for distance (usually < 100)
+        # Guard: Check for 'away' or 'from' to skip distance (e.g. '1 mi away')
         start, end = match.span()
         context = text[end:end+15].lower()
-        
-        # If it says 'away' or 'from' immediately after, it's definitely distance
         if 'away' in context or 'from' in context:
             continue
             
         try:
-            temp = val_str.replace(',', '')
-            if temp.endswith('k'):
-                mileage = int(float(temp[:-1]) * 1000)
+            # Handle 'k' multiplier
+            if val_str.endswith('k'):
+                mileage = int(float(val_str[:-1]) * 1000)
             else:
-                mileage = int(float(temp))
+                mileage = int(float(val_str))
             
-            # Distance protection: if it's less than 500 and matched 'mi' 
-            # without 'miles', it's highly likely to be distance (e.g. '1 mi')
-            # Real car mileage is almost always > 500.
-            if mileage < 500 and ('miles' not in full_match):
+            # Guard: Skip obvious car years (2010-2026) if no mileage indicators
+            if 2010 <= mileage <= 2026 and ('mi' not in full_match and 'miles' not in full_match):
+                continue
+
+            # Guard: Distance protection (usually < 500)
+            if mileage < 500 and ('miles' not in full_match and 'mi' not in full_match):
                 continue
                 
             return mileage
-        except ValueError:
+        except (ValueError, OverflowError):
             continue
     return None
 
@@ -175,7 +175,7 @@ def _extract_mileage_from_meta(text: str) -> Optional[int]:
 def _extract_pid(url: str) -> Optional[str]:
     """Extract Craigslist post ID (PID) from a listing URL."""
     # URL pattern: https://city.craigslist.org/cto/d/title/7654321234.html
-    match = re.search(r"/(d{10,13}).html", url)
+    match = re.search(r"/(\d{10,13})\.html", url)
     return match.group(1) if match else url  # Fall back to full URL if no PID
 
 
@@ -211,6 +211,7 @@ async def scrape_city(
     city: str,
     params: dict,
     max_items: int,
+    existing_pids: Optional[set[str]] = None,
 ) -> list[dict]:
     """
     Scrape a single Craigslist city CTO search page (and paginate if needed).
@@ -244,7 +245,7 @@ async def scrape_city(
         try:
             # Check for BOTH old and new Craigslist selectors
             # Use state="attached" because static results might not be "visible" in the traditional sense immediately
-            await page.wait_for_selector(".cl-search-result, .result-row, .gallery-card, .cl-static-search-result", timeout=10000, state="attached")
+            await page.wait_for_selector(".cl-search-result, .result-row, .gallery-card, .cl-static-search-result, .result-node", timeout=10000, state="attached")
             log_info(f"[{city}] Page loaded successfully.")
         except Exception:
             log_warn(f"[{city}] Timeout waiting for listing elements. Page may be empty or blocked.")
@@ -259,12 +260,82 @@ async def scrape_city(
     while len(leads) < max_items:
         page_num += 1
 
-        # ── Extract listings from current page ──────────────────────────────
-        # Updated selectors to match latest Craigslist UI (.result-node, .gallery-card)
-        items = await page.query_selector_all(".result-node, .gallery-card, .cl-search-result, .result-row, li[data-pid]")
+        log_info(f"[{city}] Page loaded successfully. Title: {await page.title()}. Waiting for results...")
+        try:
+            # Wait for either new or old Craigslist UI listing container
+            await page.wait_for_selector(".cl-search-result, .result-node, .gallery-card, .result-row", timeout=15000)
+        except Exception:
+            log_warn(f"[{city}] Timeout waiting for listing selectors. Proceeding anyway.")
+            # DIAGNOSTIC: Log more HTML to see what we DID get
+            try:
+                content = await page.content()
+                log_info(f"[{city}] HTML Snippet (first 2000): {content[:2000].replace('\n', ' ')}")
+                # Check for common "blocked" or "empty" markers
+                if "blocked" in content.lower(): log_error(f"[{city}] DETECTED: Page contains 'blocked'.")
+                if "human" in content.lower(): log_error(f"[{city}] DETECTED: Page contains 'human' (CAPTCHA).")
+                
+                div_count = await page.evaluate("document.querySelectorAll('div').length")
+                log_info(f"[{city}] Page has {div_count} DIV elements.")
+            except: pass
 
+        # ── Extract listings from current page ──────────────────────────────
+        # Use a very broad selector to catch any listing-like element
+        SEARCH_SELECTORS = [
+            ".cl-search-result",
+            ".result-node",
+            ".result-row",
+            ".gallery-card",
+            "li.cl-static-search-result",
+            ".cl-search-result-container",
+            "div[data-pid]"
+        ]
+        items = await page.query_selector_all(", ".join(SEARCH_SELECTORS))
+        log_info(f"[{city}] Found {len(items)} raw DOM items on page {page_num}.")
+
+        # ── HYBRID FALLBACK: JSON-LD Parsing ──────────────────────────────
+        json_leads = []
         if not items:
-            log_info(f"[{city}] No items found on page {page_num}. Done.")
+            log_info(f"[{city}] No DOM items found. Attempting JSON-LD fallback...")
+            try:
+                # Use evaluate to get the JSON content directly from the script tag
+                json_text = await page.evaluate("document.getElementById('ld_searchpage_results')?.textContent")
+                if json_text:
+                    data = json.loads(json_text)
+                    elements = data.get("itemListElement", []) if isinstance(data, dict) else []
+                    log_info(f"[{city}] Found {len(elements)} items in JSON-LD.")
+                    for el in elements:
+                        item_data = el.get("item", {})
+                        url = item_data.get("url")
+                        
+                        # Hardened URL/PID extraction
+                        import re
+                        pid = None
+                        if url:
+                            pid_match = re.search(r'/(\d+)\.html', url)
+                            if pid_match: pid = pid_match.group(1)
+                        
+                        if not pid:
+                            # Try to find PID in other fields if URL is missing
+                            # Sometimes PID is in the image URL or a specific ID field
+                            image_url = item_data.get("image", [""])[0] if isinstance(item_data.get("image"), list) else item_data.get("image", "")
+                            if image_url:
+                                pid_match = re.search(r'/([A-Za-z0-9_]{10,})_', image_url) # Craigslist image IDs
+                                # Note: image IDs are not PIDs, but they are unique
+                        
+                        if url:
+                            json_leads.append({
+                                "external_id": pid or url,
+                                "url": url,
+                                "title": item_data.get("name", "No Title"),
+                                "price": str(item_data.get("offers", {}).get("price", "0")),
+                                "image": image_url if 'image_url' in locals() else item_data.get("image", ""),
+                                "city": city
+                            })
+            except Exception as je:
+                log_warn(f"[{city}] JSON-LD fallback failed: {je}")
+
+        if not items and not json_leads:
+            log_info(f"[{city}] No items found at all via DOM or JSON-LD on page {page_num}. Done.")
             break
 
         for i, item in enumerate(items):
@@ -273,10 +344,26 @@ async def scrape_city(
             try:
                 lead = await _parse_listing_element(item, city)
                 if lead:
-                    # log_info(f"[{city}] Item {i} parsed successfully: {lead.get('title')[:30]}...")
+                    pid = lead.get("external_id")
+                    if existing_pids and pid in existing_pids:
+                        log_info(f"[{city}] Skipping duplicate PID: {pid}")
+                        continue
                     leads.append(lead)
             except Exception as e:
                 log_warn(f"[{city}] Error parsing listing {i}: {e}")
+
+        # 2. Add JSON-LD leads if DOM failed (or just to fill gaps)
+        for jl in json_leads:
+            if len(leads) >= max_items:
+                break
+            
+            pid = jl.get("external_id")
+            if existing_pids and pid in existing_pids:
+                # log_info(f"[{city}] Skipping duplicate JSON PID: {pid}")
+                continue
+
+            if not any(l["url"] == jl["url"] for l in leads):
+                leads.append(jl)
 
         # ── Pagination ───────────────────────────────────────────────────────
         if len(leads) >= max_items:
@@ -287,7 +374,7 @@ async def scrape_city(
             log_info(f"[{city}] Reached 3-page cap. Moving on.")
             break
 
-        next_btn = await page.query_selector("a.bd-button.cl-next-page:not([aria-disabled='true'])")
+        next_btn = await page.query_selector("a.cl-next-page, button.cl-next-page, .cl-next-result, a.bd-button.cl-next-page:not([aria-disabled='true'])")
         if not next_btn:
             log_info(f"[{city}] No next page. Done.")
             break
@@ -303,9 +390,10 @@ async def scrape_city(
     if not leads:
         try:
             html = await page.content()
-            with open(f"debug-{city}.html", "w", encoding="utf-8") as f:
+            debug_path = f"/tmp/debug-{city}.html"
+            with open(debug_path, "w", encoding="utf-8") as f:
                 f.write(html)
-            log_warn(f"[{city}] No leads found. Saved HTML to debug-{city}.html")
+            log_warn(f"[{city}] No leads found. Saved HTML to {debug_path}")
         except Exception as de:
             log_warn(f"[{city}] Failed to save debug HTML: {de}")
 
@@ -321,7 +409,7 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
         external_id = await item.get_attribute("data-pid")
         
         # 2. Title & URL
-        title_el = await item.query_selector(".posting-title, .cl-search-anchor, a.result-title, .title")
+        title_el = await item.query_selector(".posting-title, .cl-app-anchor, .cl-search-anchor, a.result-title, .title")
         if not title_el:
             log_warn(f"[{city}] Missing title element for item with HTML: {await item.inner_html()}")
             return None
@@ -369,13 +457,42 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
         if not posted_at:
             posted_at = datetime.now(timezone.utc).isoformat()
 
-        # 6. Mileage
+        # 6. Mileage — try multiple selectors to cover old+new Craigslist UI
         mileage = None
-        # Target the '.meta' container directly as found in live browser inspection
-        meta_el = await item.query_selector(".meta")
-        if meta_el:
-            meta_text = (await meta_el.inner_text()).strip()
-            mileage = _extract_mileage_from_meta(meta_text)
+        meta_text = ""
+        # Strategy 1: The old and new '.meta' container
+        for meta_selector in [".meta", ".result-meta-text", ".cl-search-result-info", ".meta-text"]:
+            meta_el = await item.query_selector(meta_selector)
+            if meta_el:
+                meta_text = (await meta_el.inner_text()).strip()
+                mileage = _extract_mileage_from_meta(meta_text)
+                if mileage:
+                    break
+        # Strategy 2: Scan ALL inner text of the card for mileage patterns
+        if not mileage:
+            try:
+                full_card_text = (await item.inner_text()).strip()
+                mileage = _extract_mileage_from_meta(full_card_text)
+                if mileage:
+                    meta_text = full_card_text
+            except Exception:
+                pass
+        
+        # Strategy 3: Target title directly with a specialized pattern if still missing
+        if not mileage:
+            # Look for "2019 Ford Fiesta 117k" or "2019 Ford Fiesta 117000"
+            # We look for a number (optionally with k) at the END of the title
+            title_match = re.search(r'\s(\d{1,3}k|\d{4,6}k|\d{4,6})\s*$', title, re.IGNORECASE)
+            if title_match:
+                val = title_match.group(1).lower()
+                try:
+                    if val.endswith('k'):
+                        mileage = int(float(val[:-1]) * 1000)
+                    else:
+                        mileage = int(val)
+                except:
+                    pass
+        
         if not mileage:
             mileage = _extract_mileage_from_meta(title)
 
@@ -503,14 +620,62 @@ async def scrape_deep(context: BrowserContext, url: str) -> Optional[dict]:
 
         # Attributes (mileage, odometer, VIN, condition)
         attrs: dict = {}
-        attr_groups = await page.query_selector_all(".attrgroup span")
-        for attr in attr_groups:
-            text = (await attr.inner_text()).strip()
-            if ":" in text:
-                key, _, val = text.partition(":")
-                attrs[key.strip().lower()] = val.strip()
+        # Mileage/Odometer (Updated for new Craigslist UI)
+        odometer = ""
+        try:
+            # Try new specific selector first
+            odo_elem = await page.query_selector(".attr.auto_miles .valu")
+            if odo_elem:
+                odometer = (await odo_elem.inner_text()).strip()
+                log_info(f"[Deep] Parsed odometer from specific selector: {odometer}")
             else:
-                attrs[text.lower()] = True
+                # Fallback to general search in attrgroup
+                attr_groups = await page.query_selector_all(".attrgroup span")
+                for attr in attr_groups:
+                    text = (await attr.inner_text()).strip()
+                    if ":" in text:
+                        key, _, val = text.partition(":")
+                        attrs[key.strip().lower()] = val.strip()
+                        if "odometer" in key.lower():
+                            odometer = val.strip()
+                            log_info(f"[Deep] Parsed odometer from attrgroup key: {odometer}")
+                            break # Found odometer, no need to continue loop for it
+                    elif "odometer" in text.lower(): # Handle cases like "odometer: 12345" without explicit key-value
+                        odometer = text.lower().replace("odometer:", "").strip()
+                        log_info(f"[Deep] Parsed odometer from attrgroup text: {odometer}")
+                        break
+                    else:
+                        attrs[text.lower()] = True # Add other attributes as boolean flags if no value
+        except Exception as e:
+            log_warn(f"[Deep] Error extracting odometer: {e}")
+        
+        if odometer:
+            attrs["odometer"] = odometer # Ensure odometer is in attrs dict
+
+        # Re-process attr_groups to ensure all attributes are captured, not just odometer
+        # New structure: div.attr with span.labl and span.valu
+        attr_divs = await page.query_selector_all(".attrgroup div.attr")
+        for div in attr_divs:
+            labl = await div.query_selector(".labl")
+            valu = await div.query_selector(".valu")
+            if labl and valu:
+                key = (await labl.inner_text()).strip().replace(":", "").strip().lower()
+                val = (await valu.inner_text()).strip().lower()
+                attrs[key] = val
+        
+        # Fallback for old structure or mixed tags
+        attr_spans = await page.query_selector_all(".attrgroup span")
+        for span in attr_spans:
+            text = (await span.inner_text()).strip()
+            if ":" in text:
+                parts = text.split(":", 1)
+                key = parts[0].strip().lower()
+                val = parts[1].strip().lower() if len(parts) > 1 else ""
+                if key not in attrs: # Only add if not already captured by the new structure
+                    attrs[key] = val
+            elif text and not any(text.lower().startswith(k) for k in attrs):
+                # Only add if it doesn't match an existing key and isn't empty
+                attrs[text.strip().lower()] = True
 
         mileage_text = attrs.get("odometer") or attrs.get("mileage") or ""
         mileage = _extract_mileage(str(mileage_text)) if mileage_text else None
@@ -645,6 +810,9 @@ async def run_scraper(event: dict) -> dict:
     all_leads = []
 
     async with async_playwright() as pw:
+        # Define a specific User-Agent string
+        USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+
         browser = await pw.chromium.launch(
             headless=True,
             proxy=proxy if proxy else None,
@@ -669,7 +837,7 @@ async def run_scraper(event: dict) -> dict:
         )
 
         context = await browser.new_context(
-            user_agent=user_agent,
+            user_agent=USER_AGENT,
             viewport={"width": 1280, "height": 800},
             locale="en-US",
             timezone_id="America/Los_Angeles",
@@ -677,11 +845,18 @@ async def run_scraper(event: dict) -> dict:
             permissions=[],
         )
 
-        # Apply stealth patches to hide Playwright/Chromium bot signals
-        # Manual stealth: minimum injection to pass basic checks
+        # Advanced stealth patches to hide Playwright/Chromium bot signals
         await context.add_init_script("""
             Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+            Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
             window.chrome = { runtime: {} };
+            const originalQuery = window.navigator.permissions.query;
+            window.navigator.permissions.query = (parameters) => (
+                parameters.name === 'notifications' ?
+                Promise.resolve({ state: Notification.permission }) :
+                originalQuery(parameters)
+            );
         """)
 
         # Inject X-Zyte-Options so Zyte API proxies through US Residential/Unblocked IPs
@@ -704,11 +879,33 @@ async def run_scraper(event: dict) -> dict:
                     _jitter()  # Jitter between city requests
 
                 try:
+                    # 1. Fetch existing PIDs for this dealer to avoid counting them
+                    existing_pids = set()
+                    try:
+                        db = create_client(SUPABASE_URL, SUPABASE_KEY)
+                        # We only care about PIDs from this city to keep the set small
+                        # and only from the last 30 days to keep performance high
+                        res = db.table("leads") \
+                            .select("external_id") \
+                            .eq("dealer_id", dealer_id) \
+                            .eq("city", city) \
+                            .execute()
+                        existing_pids = {row["external_id"] for row in res.data}
+                        log_info(f"[{city}] Initialized with {len(existing_pids)} existing PIDs.")
+                    except Exception as pe:
+                        log_warn(f"[{city}] Could not fetch existing PIDs: {pe}")
+
+                    # Calculate dynamic target to ensure we hit the total max_items
+                    remaining_cities = len(cities) - i
+                    target = (max_items - len(all_leads) + remaining_cities - 1) // remaining_cities
+                    if target <= 0: break
+
                     city_leads = await scrape_city(
                         context=context,
                         city=city,
                         params=event,
-                        max_items=max_items // max(len(cities), 1),
+                        max_items=target,
+                        existing_pids=existing_pids,
                     )
                     if city_leads:
                         all_leads.extend(city_leads)
@@ -768,6 +965,7 @@ def handler(event, context):
     """
     AWS Lambda entry point.
     """
+    log_info("--- [VERSION] v13-cl-json-hybrid ---")
     log_info("Lambda execution started.")
     sys.stdout.flush()  # Force CloudWatch to receive at least this line
     

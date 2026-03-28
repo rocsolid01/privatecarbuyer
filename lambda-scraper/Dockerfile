@@ -29,7 +29,7 @@ RUN dnf install -y \
     && dnf clean all
 
 # Force rebuild of subsequent layers
-RUN echo "Rebuild: 2026-03-26-mileage-fix-v2" > /build_info
+RUN echo "Rebuild: 2026-03-27-pid-mileage-fix-v15" > /build_info
 
 # Set Playwright browser path within the task root
 ENV PLAYWRIGHT_BROWSERS_PATH=${LAMBDA_TASK_ROOT}/pw-browsers
