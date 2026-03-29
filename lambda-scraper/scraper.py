@@ -137,20 +137,21 @@ def _extract_mileage_from_meta(text: str) -> Optional[int]:
         return None
     
     # 1. Broadening Regex: Support raw numbers, k suffix, and comma separators
-    # Pattern 1: numbers + 'k' (optional) + 'mi' or 'miles' (optional)
-    # Examples: 110k mi, 91,000 miles, 117k, 117000, 117.5k
-    pattern = r'(\b\d{1,3}(?:[,\s]\d{3})*k?|\b\d{4,6}k?|\b\d+(?:\.\d+)?k)\s*(?:mi|miles?|odometer)?'
+    # Use boundaries correctly and prioritize longer matches
+    pattern = r'\b(\d{1,3}(?:[,\s]\d{3})+k?|\d{1,6}k?|\d+(?:\.\d+)?k)\b\s*(mi|miles?|odometer)?'
+    
+    best_match = None
+    best_score = -1 # Score based on presence of units
     
     for match in re.finditer(pattern, text, re.IGNORECASE):
-        val_str = match.group(1).lower().replace(',', '').replace(' ', '')
-        full_match = match.group(0).lower()
-        
-        # Guard: Check for 'away' or 'from' to skip distance (e.g. '1 mi away')
-        start, end = match.span()
-        context = text[end:end+15].lower()
-        if 'away' in context or 'from' in context:
+        start, _ = match.span()
+        # Explicitly skip if preceded by $ (handles both $12,000 and $ 12,000)
+        if start > 0 and (text[start-1] == '$' or (start > 1 and text[start-1] == ' ' and text[start-2] == '$')):
             continue
-            
+
+        val_str = match.group(1).lower().replace(',', '').replace(' ', '')
+        unit_str = match.group(2).lower() if match.group(2) else ""
+        
         try:
             # Handle 'k' multiplier
             if val_str.endswith('k'):
@@ -159,17 +160,25 @@ def _extract_mileage_from_meta(text: str) -> Optional[int]:
                 mileage = int(float(val_str))
             
             # Guard: Skip obvious car years (2010-2026) if no mileage indicators
-            if 2010 <= mileage <= 2026 and ('mi' not in full_match and 'miles' not in full_match):
+            if 2010 <= mileage <= 2026 and not unit_str:
                 continue
 
             # Guard: Distance protection (usually < 500)
-            if mileage < 500 and ('miles' not in full_match and 'mi' not in full_match):
+            if mileage < 500 and not unit_str:
                 continue
                 
-            return mileage
+            # Scoring: unit exists > no unit
+            score = 2 if unit_str else 0
+            if val_str.endswith('k'): score += 1
+            
+            if score > best_score:
+                best_score = score
+                best_match = mileage
+                
         except (ValueError, OverflowError):
             continue
-    return None
+            
+    return best_match
 
 
 def _extract_pid(url: str) -> Optional[str]:
@@ -183,7 +192,6 @@ def _extract_year(title: str) -> Optional[int]:
     """Extract 4-digit year from title (e.g. '2019 Toyota Camry')."""
     match = re.search(r"\b(19|20)\d{2}\b", title)
     return int(match.group(0)) if match else None
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Route-aborting: Drop images, CSS, fonts, analytics — saves ~90% bandwidth
@@ -269,7 +277,7 @@ async def scrape_city(
             # DIAGNOSTIC: Log more HTML to see what we DID get
             try:
                 content = await page.content()
-                log_info(f"[{city}] HTML Snippet (first 2000): {content[:2000].replace('\n', ' ')}")
+                log_info(f"[{city}] HTML Snippet (first 2000): {content[:2000].replace('\\n', ' ')}")
                 # Check for common "blocked" or "empty" markers
                 if "blocked" in content.lower(): log_error(f"[{city}] DETECTED: Page contains 'blocked'.")
                 if "human" in content.lower(): log_error(f"[{city}] DETECTED: Page contains 'human' (CAPTCHA).")
@@ -311,7 +319,7 @@ async def scrape_city(
                         import re
                         pid = None
                         if url:
-                            pid_match = re.search(r'/(\d+)\.html', url)
+                            pid_match = re.search(r'/(\\d+)\\.html', url)
                             if pid_match: pid = pid_match.group(1)
                         
                         if not pid:
@@ -338,6 +346,10 @@ async def scrape_city(
             log_info(f"[{city}] No items found at all via DOM or JSON-LD on page {page_num}. Done.")
             break
 
+        # ── Process items ────────────────────────────────────────────────────
+        deep_scrape_count = 0
+        MAX_DEEP_SCRAPES_PER_CITY = 15 # Guard against Lambda timeout
+        
         for i, item in enumerate(items):
             if len(leads) >= max_items:
                 break
@@ -345,9 +357,34 @@ async def scrape_city(
                 lead = await _parse_listing_element(item, city)
                 if lead:
                     pid = lead.get("external_id")
+                    
+                    # 1. Skip if already in DB
                     if existing_pids and pid in existing_pids:
-                        log_info(f"[{city}] Skipping duplicate PID: {pid}")
+                        # log_info(f"[{city}] Skipping duplicate PID: {pid}")
                         continue
+                    
+                    # 2. Conditional Deep Scrape if mileage is missing
+                    # Only if we haven't hit our safety budget for this city
+                    if not lead.get("mileage") and deep_scrape_count < MAX_DEEP_SCRAPES_PER_CITY:
+                        log_info(f"[{city}] Missing mileage for {pid}. Performing conditional deep scrape...")
+                        _jitter() # Be nice
+                        details = await scrape_deep(context, lead["url"])
+                        deep_scrape_count += 1
+                        
+                        if details:
+                            if details.get("mileage"):
+                                lead["mileage"] = details["mileage"]
+                                log_info(f"[{city}] Successfully recovered mileage: {lead['mileage']}")
+                            
+                            # Map additional details to DB columns
+                            if details.get("description"):
+                                # Use ai_notes as the destination for the raw description if it's short, or truncated
+                                lead["ai_notes"] = details["description"][:2000] # Cap to reasonable length
+                            if details.get("photos"):
+                                lead["photos"] = details["photos"]
+                            if details.get("vin"):
+                                lead["vin"] = details["vin"]
+
                     leads.append(lead)
             except Exception as e:
                 log_warn(f"[{city}] Error parsing listing {i}: {e}")
@@ -482,7 +519,7 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
         if not mileage:
             # Look for "2019 Ford Fiesta 117k" or "2019 Ford Fiesta 117000"
             # We look for a number (optionally with k) at the END of the title
-            title_match = re.search(r'\s(\d{1,3}k|\d{4,6}k|\d{4,6})\s*$', title, re.IGNORECASE)
+            title_match = re.search(r'\\s(\\d{1,3}k|\\d{4,6}k|\\d{4,6})\\s*$', title, re.IGNORECASE)
             if title_match:
                 val = title_match.group(1).lower()
                 try:
@@ -591,7 +628,6 @@ def _matches_filters(lead: dict, params: dict) -> bool:
         log_warn(f"Filter error: {e}")
         return True
 
-
 async def scrape_deep(context: BrowserContext, url: str) -> Optional[dict]:
     """
     Deep-scrape a single listing URL for mileage, VIN, photos, and description.
@@ -601,12 +637,15 @@ async def scrape_deep(context: BrowserContext, url: str) -> Optional[dict]:
     # ── Initial Load ─────────────────────────────────────────────────────────
     try:
         log_info(f"[Deep] Navigating to: {url}")
-        await page.goto(url, wait_until="networkidle", timeout=60000)
+        # Use a generous timeout but wait for networkidle
+        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        
         # Wait specifically for the listing containers to appear
         try:
-            await page.wait_for_selector("#postingbody", timeout=15000) # Wait for description body
+            # .attrgroup contains the structured car data
+            await page.wait_for_selector(".attrgroup, #postingbody", timeout=10000)
         except:
-            log_warn(f"[Deep] Timeout waiting for #postingbody. Proceeding anyway.")
+            log_warn(f"[Deep] Timeout waiting for key elements on {url}. Proceeding with partial data.")
             
     except Exception as e:
         log_error(f"[Deep] Failed to load page: {url} — {e}")
@@ -614,84 +653,75 @@ async def scrape_deep(context: BrowserContext, url: str) -> Optional[dict]:
         return None
 
     try:
-        # Description
+        # 1. Description
         desc_el = await page.query_selector("#postingbody")
-        description = (await desc_el.inner_text()).strip() if desc_el else ""
+        description = ""
+        if desc_el:
+            # Remove the "QR Code Link to This Post" text if present
+            full_text = await desc_el.inner_text()
+            description = full_text.replace("QR Code Link to This Post", "").strip()
 
-        # Attributes (mileage, odometer, VIN, condition)
+        # 2. Attributes (mileage, odometer, VIN, condition)
         attrs: dict = {}
-        # Mileage/Odometer (Updated for new Craigslist UI)
-        odometer = ""
+        odometer = None
+        
+        # Strategy A: Direct Selector for Odometer (New Craigslist UI)
         try:
-            # Try new specific selector first
-            odo_elem = await page.query_selector(".attr.auto_miles .valu")
+            # This is the most reliable selector found in browser inspection
+            odo_elem = await page.query_selector(".attr.auto_miles .valu, .attr.odometer .valu")
             if odo_elem:
-                odometer = (await odo_elem.inner_text()).strip()
-                log_info(f"[Deep] Parsed odometer from specific selector: {odometer}")
-            else:
-                # Fallback to general search in attrgroup
-                attr_groups = await page.query_selector_all(".attrgroup span")
-                for attr in attr_groups:
-                    text = (await attr.inner_text()).strip()
-                    if ":" in text:
-                        key, _, val = text.partition(":")
-                        attrs[key.strip().lower()] = val.strip()
-                        if "odometer" in key.lower():
-                            odometer = val.strip()
-                            log_info(f"[Deep] Parsed odometer from attrgroup key: {odometer}")
-                            break # Found odometer, no need to continue loop for it
-                    elif "odometer" in text.lower(): # Handle cases like "odometer: 12345" without explicit key-value
-                        odometer = text.lower().replace("odometer:", "").strip()
-                        log_info(f"[Deep] Parsed odometer from attrgroup text: {odometer}")
-                        break
-                    else:
-                        attrs[text.lower()] = True # Add other attributes as boolean flags if no value
+                odometer_text = (await odo_elem.inner_text()).strip()
+                odometer = _extract_mileage(odometer_text)
+                log_info(f"[Deep] Found odometer via specific selector: {odometer}")
         except Exception as e:
-            log_warn(f"[Deep] Error extracting odometer: {e}")
-        
-        if odometer:
-            attrs["odometer"] = odometer # Ensure odometer is in attrs dict
+            log_warn(f"[Deep] Error with specific odometer selector: {e}")
 
-        # Re-process attr_groups to ensure all attributes are captured, not just odometer
-        # New structure: div.attr with span.labl and span.valu
-        attr_divs = await page.query_selector_all(".attrgroup div.attr")
-        for div in attr_divs:
-            labl = await div.query_selector(".labl")
-            valu = await div.query_selector(".valu")
-            if labl and valu:
-                key = (await labl.inner_text()).strip().replace(":", "").strip().lower()
-                val = (await valu.inner_text()).strip().lower()
-                attrs[key] = val
-        
-        # Fallback for old structure or mixed tags
+        # Strategy B: Attribute Group Parsing (Broad Fallback)
         attr_spans = await page.query_selector_all(".attrgroup span")
         for span in attr_spans:
             text = (await span.inner_text()).strip()
             if ":" in text:
-                parts = text.split(":", 1)
-                key = parts[0].strip().lower()
-                val = parts[1].strip().lower() if len(parts) > 1 else ""
-                if key not in attrs: # Only add if not already captured by the new structure
-                    attrs[key] = val
-            elif text and not any(text.lower().startswith(k) for k in attrs):
-                # Only add if it doesn't match an existing key and isn't empty
-                attrs[text.strip().lower()] = True
+                key, _, val = text.partition(":")
+                k = key.strip().lower()
+                v = val.strip().lower()
+                attrs[k] = v
+                if "odometer" in k and not odometer:
+                    odometer = _extract_mileage(v)
+                    log_info(f"[Deep] Found odometer via attrgroup text: {odometer}")
+            else:
+                # Boolean attributes or labels
+                attrs[text.lower()] = True
+        
+        # Strategy C: Odometer from description (Final Fallback)
+        if not odometer and description:
+            odometer = _extract_mileage_from_meta(description)
+            if odometer:
+                log_info(f"[Deep] Found odometer in description text: {odometer}")
 
-        mileage_text = attrs.get("odometer") or attrs.get("mileage") or ""
-        mileage = _extract_mileage(str(mileage_text)) if mileage_text else None
+        # 3. VIN
         vin = attrs.get("vin") or None
+        if not vin and description:
+            # Simple VIN regex (17 chars, no I, O, Q)
+            vin_match = re.search(r'\\b[A-HJ-NPR-Z0-9]{17}\\b', description)
+            if vin_match:
+                vin = vin_match.group(0)
 
-        # Photo URLs (from og:image meta tags or .slide img src)
-        photo_els = await page.query_selector_all(".slide img")
+        # 4. Photo URLs (from .slide img or meta)
         photos = []
-        for img in photo_els[:10]:  # Cap at 10 photos
-            src = await img.get_attribute("src")
-            if src:
-                photos.append(src)
+        try:
+            photo_els = await page.query_selector_all(".slide img, .gallery img")
+            for img in photo_els[:12]:  # Cap at 12 photos
+                src = await img.get_attribute("src")
+                if src:
+                    # Convert thumbnail URLs to full size if possible
+                    # Craigslist thumbs: 50x50c or 300x225
+                    full_src = src.replace("50x50c", "600x450").replace("300x225", "600x450")
+                    photos.append(full_src)
+        except: pass
 
         return {
             "description": description,
-            "mileage": mileage,
+            "mileage": odometer,
             "vin": vin,
             "photos": photos,
             "attributes": attrs,
@@ -719,12 +749,16 @@ def upsert_leads(leads: list[dict], dealer_id: str) -> int:
 
     db = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    # Strip meta_text before DB insertion to avoid schema errors
+    # Define valid columns for Supabase 'leads' table (preventing insertion errors if extra keys like 'description' exist)
+    VALID_COLUMNS = {
+        "external_id", "title", "price", "mileage", "vin", "location", "url", "photos", 
+        "post_time", "ai_margin", "ai_notes", "status", "dealer_id", "created_at", 
+        "city", "year", "title_status", "is_clean_title", "scraped_at", "meta_text", "raw_title"
+    }
+
     leads_to_save = []
     for lead in leads:
-        clean_lead = lead.copy()
-        if "meta_text" in clean_lead:
-            del clean_lead["meta_text"]
+        clean_lead = {k: v for k, v in lead.items() if k in VALID_COLUMNS}
         clean_lead["dealer_id"] = dealer_id
         leads_to_save.append(clean_lead)
 
@@ -885,10 +919,10 @@ async def run_scraper(event: dict) -> dict:
                         db = create_client(SUPABASE_URL, SUPABASE_KEY)
                         # We only care about PIDs from this city to keep the set small
                         # and only from the last 30 days to keep performance high
-                        res = db.table("leads") \
-                            .select("external_id") \
-                            .eq("dealer_id", dealer_id) \
-                            .eq("city", city) \
+                        res = db.table("leads") \\
+                            .select("external_id") \\
+                            .eq("dealer_id", dealer_id) \\
+                            .eq("city", city) \\
                             .execute()
                         existing_pids = {row["external_id"] for row in res.data}
                         log_info(f"[{city}] Initialized with {len(existing_pids)} existing PIDs.")
@@ -958,27 +992,74 @@ async def run_scraper(event: dict) -> dict:
     }
 
 
+async def autonomous_pulse_loop():
+    """
+    Fetches all active settings from Supabase and runs the scraper for each.
+    Bypasses Vercel Hobby cron limitations by keeping the schedule within AWS.
+    """
+    if not (SUPABASE_URL and SUPABASE_KEY):
+        log_error("[PULSE] Supabase credentials missing. Cannot run autonomous pulse.")
+        return {"success": False, "error": "Missing credentials"}
+    
+    try:
+        db = create_client(SUPABASE_URL, SUPABASE_KEY)
+        # Fetch only users who have auto-scan enabled
+        res = db.table("settings").select("*").eq("auto_scan_enabled", True).execute()
+        all_settings = res.data or []
+        
+        log_info(f"[PULSE] Found {len(all_settings)} active sniper configurations.")
+        
+        results = []
+        for s in all_settings:
+            log_info(f"[PULSE] Triggering autonomous run for dealer: {s['id']}")
+            
+            # Map DB settings (CamelCase/SnakeCase) to Scraper Event format
+            # Note: DB uses snake_case, scraper generally expects these keys
+            payload = {
+                "mode": "pulse",
+                "dealer_id": s["id"],
+                "cities": s.get("locations", ["losangeles"]),
+                "year_min": s.get("year_min", 2010),
+                "year_max": s.get("year_max", 2024),
+                "price_min": s.get("price_min", 0),
+                "price_max": s.get("price_max", 100000),
+                "mileage_max": s.get("mileage_max", 250000),
+                "makes": s.get("makes", []),
+                "models": s.get("models", []),
+                "max_items": s.get("batch_size", 10)
+            }
+            
+            try:
+                run_res = await run_scraper(payload)
+                results.append({"dealer_id": s["id"], "success": True, "count": run_res.get("count", 0)})
+            except Exception as e:
+                log_error(f"[PULSE] Run failed for {s['id']}: {e}")
+                results.append({"dealer_id": s["id"], "success": False, "error": str(e)})
+        
+        return {"success": True, "pulse_results": results}
+        
+    except Exception as e:
+        log_error(f"[PULSE] Autonomous loop failed: {e}")
+        return {"success": False, "error": str(e)}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Lambda Handler
 # ─────────────────────────────────────────────────────────────────────────────
 def handler(event, context):
     """
-    AWS Lambda entry point.
+    AWS Lambda entry point. Supports both direct API calls and scheduled Events.
     """
-    log_info("--- [VERSION] v13-cl-json-hybrid ---")
+    log_info("--- [VERSION] v14-autonomous-pulse ---")
     log_info("Lambda execution started.")
-    sys.stdout.flush()  # Force CloudWatch to receive at least this line
+    sys.stdout.flush()
     
-    # API Gateway wraps the body as a JSON string in event["body"]
+    # API Gateway wraps the body as a JSON string; EventBridge passes the dict directly
     if isinstance(event.get("body"), str):
         try:
             payload = json.loads(event["body"])
         except json.JSONDecodeError:
             log_error("Invalid JSON body received.")
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"success": False, "error": "Invalid JSON body"}),
-            }
+            return {"statusCode": 400, "body": json.dumps({"success": False, "error": "Invalid JSON body"})}
     elif isinstance(event, dict) and "body" not in event:
         payload = event
     else:
@@ -987,9 +1068,16 @@ def handler(event, context):
     log_info(f"Payload received: {json.dumps(payload, indent=2) if hasattr(payload, 'keys') else payload}")
 
     try:
-        # Check for async loop and run it
-        result = asyncio.run(run_scraper(payload))
-        log_info(f"Scraper execution finished. Success: {result.get('success')}")
+        # Determine Execution Path
+        if payload.get("mode") == "pulse" and "cities" not in payload:
+            # Autonomous Path: Triggered by AWS Schedule, fetch all users
+            log_info("[HANDLER] Entering Autonomous Pulse Loop...")
+            result = asyncio.run(autonomous_pulse_loop())
+        else:
+            # Direct Path: Triggered by Vercel or Manual Force Scan
+            log_info("[HANDLER] Entering Direct Scraper Mode...")
+            result = asyncio.run(run_scraper(payload))
+            
         return {
             "statusCode": 200,
             "headers": {
@@ -998,15 +1086,12 @@ def handler(event, context):
                 "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
                 "Access-Control-Allow-Methods": "OPTIONS,POST"
             },
-            "body": json.dumps(result),
+            "body": json.dumps(result)
         }
     except Exception as e:
-        log_error(f"Global Handler Error: {str(e)}")
-        # Print stack trace for better debugging in CloudWatch
-        import traceback
-        traceback.print_exc()
+        log_error(f"Global handler error: {e}")
         return {
             "statusCode": 500,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"success": False, "error": str(e)}),
+            "body": json.dumps({"success": False, "error": str(e)})
         }
+
