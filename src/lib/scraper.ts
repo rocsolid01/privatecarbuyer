@@ -4,7 +4,6 @@
  * Vercel-side scraper orchestrator — replaces apify.ts.
  *
  * This module contains ALL the existing logic:
- *   • Budget guardrail (daily_budget_usd)
  *   • Smart sleep (active_hour_start / active_hour_end)
  *   • Cooldown (pulse_interval, last_pulse_at)
  *   • Tiered city targeting (Hot Zone / Far Sweep)
@@ -110,15 +109,6 @@ export async function runScraper(settings: Settings, isDeepScrape = false, isPul
     if (isPulse && (currentHour < startHour || currentHour >= endHour)) {
         console.log(`[Tiered Sniper] 💤 SYSTEM SLEEP (Active: ${startHour}:00 - ${endHour}:00 | Current: ${currentHour}:00 LA)`);
         return { success: true, message: `System is in sleep mode (Local LA Time: ${currentHour}:00).` };
-    }
-
-    // ── 2. Budget Guardrail ───────────────────────────────────────────────
-    const dailyBudget = settings.daily_budget_usd ?? 1.0;
-    const spentToday = settings.budget_spent_today ?? 0;
-
-    if (spentToday >= dailyBudget) {
-        console.log(`[Tiered Sniper] 🛑 BUDGET LIMIT REACHED ($${spentToday} >= $${dailyBudget})`);
-        return { success: true, message: 'Daily budget limit reached.' };
     }
 
     // ── Tiered City Selection ─────────────────────────────────────────────
@@ -273,18 +263,6 @@ export async function runScraper(settings: Settings, isDeepScrape = false, isPul
             console.log('[Lambda] Triggered successfully (Connection timed out, but Lambda is continuing in background).');
         } else {
             console.log('[Lambda] Scrape triggered and responded successfully.');
-        }
-
-        // Budget tracking
-        try {
-            const estimatedCost = 0.001;
-            const { data: latest } = await adminSupabase
-                .from('settings').select('budget_spent_today').eq('id', settings.id).single();
-            await adminSupabase.from('settings').update({
-                budget_spent_today: (latest?.budget_spent_today || 0) + estimatedCost,
-            }).eq('id', settings.id);
-        } catch (budgetErr: any) {
-            console.error('[Budget Update] Failed to update budget:', budgetErr.message);
         }
 
     } catch (err: any) {

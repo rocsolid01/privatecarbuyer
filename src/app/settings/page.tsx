@@ -90,8 +90,6 @@ export default function SettingsPage() {
         recon_multiplier: 1.0,
         active_hour_start: 7,
         active_hour_end: 22,
-        daily_budget_usd: 1.00,
-        budget_spent_today: 0.00,
         exclude_salvage: true,
         auto_scan_enabled: true,
         consecutive_empty_runs: 0
@@ -444,7 +442,6 @@ export default function SettingsPage() {
             active_hour_end: 22,
             batch_size: 5,
             sms_require_vin: false,
-            daily_budget_usd: 1.00,
             exclude_salvage: true,
             auto_scan_enabled: true
         });
