@@ -67,3 +67,7 @@ lint_results.txt
 next-env.d.ts
 
 .vercel
+
+# lambda debug/output artifacts
+lambda-scraper/*.json
+lambda-scraper/*.txt
