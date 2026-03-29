@@ -33,3 +33,7 @@ functions:
       - http:
           path: scrape
           method: post
+      - schedule:
+          rate: rate(30 minutes)
+          input:
+            mode: pulse

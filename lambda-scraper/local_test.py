@@ -21,8 +21,8 @@ async def main():
         "price_min": 1000,
         "price_max": 100000,
         "mileage_max": 250000,
-        "max_items": 15,
-        "dealer_id": "00000000-0000-0000-0000-000000000000",
+        "max_items": 10,
+        "dealer_id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
         "mode": "pulse"
     }
     

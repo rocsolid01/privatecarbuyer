@@ -702,7 +702,7 @@ async def scrape_deep(context: BrowserContext, url: str) -> Optional[dict]:
         vin = attrs.get("vin") or None
         if not vin and description:
             # Simple VIN regex (17 chars, no I, O, Q)
-            vin_match = re.search(r'\\b[A-HJ-NPR-Z0-9]{17}\\b', description)
+            vin_match = re.search(r'\b[A-HJ-NPR-Z0-9]{17}\b', description)
             if vin_match:
                 vin = vin_match.group(0)
 

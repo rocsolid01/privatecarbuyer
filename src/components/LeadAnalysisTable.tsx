@@ -99,16 +99,17 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     className="w-4 h-4 rounded border-white/10 bg-slate-900 checked:bg-indigo-500 transition-all cursor-pointer accent-indigo-500"
                                 />
                             </th>
-                            <th className="w-[26%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Target Ident</th>
-                            <th className="w-[20%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">AI Intelligence</th>
-                            <SortHeader label="Year" sortKey="post_year" width="w-[8%]" />
-                            <SortHeader label="City" sortKey="city" width="w-[8%]" />
+                            <th className="w-[20%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Target Ident</th>
+                            <SortHeader label="Price" sortKey="price" width="w-[8%]" />
                             <SortHeader label="Mileage" sortKey="mileage" width="w-[10%]" />
-                            <SortHeader label="Status" sortKey="title_status" width="w-[8%]" />
-                            <th className="w-[10%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Posted</th>
-                            <SortHeader label="Protocol" sortKey="status" width="w-[10%]" />
-                            <SortHeader label="Scrape Time" sortKey="created_at" width="w-[12%]" />
-                            <th className="p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap text-right pr-8 w-[10%]">Intercept</th>
+                            <th className="w-[18%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">AI Intelligence</th>
+                            <SortHeader label="Year" sortKey="post_year" width="w-[7%]" />
+                            <SortHeader label="City" sortKey="city" width="w-[8%]" />
+                            <SortHeader label="Status" sortKey="title_status" width="w-[7%]" />
+                            <th className="w-[8%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Posted</th>
+                            <SortHeader label="Protocol" sortKey="status" width="w-[8%]" />
+                            <SortHeader label="Scrape Time" sortKey="created_at" width="w-[10%]" />
+                            <th className="p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap text-right pr-8 w-[8%]">Intercept</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -149,6 +150,22 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     </div>
                                 </td>
                                 <td className="p-3">
+                                    <div className="flex flex-col">
+                                        <div className="text-white font-black italic tracking-tighter text-[11px]">
+                                            ${lead.price?.toLocaleString() || '---'}
+                                        </div>
+                                        <div className="text-[7px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">List Price</div>
+                                    </div>
+                                </td>
+                                <td className="p-3 font-bold italic tracking-tighter">
+                                    {lead.mileage ? (
+                                        <span className="text-slate-300 font-black">{lead.mileage.toLocaleString()}</span>
+                                    ) : (
+                                        <span className="text-slate-700 italic opacity-50 text-[8px]">NOT LISTED</span>
+                                    )}
+                                    <span className="text-[7px] text-slate-600 ml-1">MI</span>
+                                </td>
+                                <td className="p-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-md">
                                             <TrendingUp size={10} className="text-indigo-400" />
@@ -178,16 +195,8 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                         <span className="truncate">{lead.city || lead.location || 'N/A'}</span>
                                     </div>
                                 </td>
-                                <td className="p-3 font-bold italic tracking-tighter">
-                                    {lead.mileage ? (
-                                        <span className="text-slate-300">{lead.mileage.toLocaleString()}</span>
-                                    ) : (
-                                        <span className="text-slate-700 italic opacity-50 text-[8px]">NOT LISTED</span>
-                                    )}
-                                    <span className="text-[7px] text-slate-600 ml-1">MI</span>
-                                </td>
                                 <td className="p-3">
-                                    <div className={`inline-flex items-center px-2 py-0.5 rounded text-[8px] font-black italic tracking-tighter border ${
+                                    <div className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black italic tracking-tighter border ${
                                         lead.title_status?.toLowerCase().includes('salvage')
                                             ? 'text-red-400 bg-red-400/5 border-red-400/10'
                                             : 'text-slate-400 bg-slate-400/5 border-white/5'
