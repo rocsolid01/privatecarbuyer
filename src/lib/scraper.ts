@@ -242,7 +242,7 @@ export async function runScraper(settings: Settings, isDeepScrape = false, isPul
         models:      settings.models || [],
         post_age_max: settings.post_age_max || 24,
         exclude_salvage: settings.exclude_salvage || false,
-        posted_today: isDeepScrape ? false : true,
+        posted_today: false,
         max_items:   Math.min(500, settings.max_items_per_city || 25),
     };
 
