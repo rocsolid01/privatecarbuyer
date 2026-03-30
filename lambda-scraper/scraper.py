@@ -319,7 +319,7 @@ async def scrape_city(
                         import re
                         pid = None
                         if url:
-                            pid_match = re.search(r'/(\\d+)\\.html', url)
+                            pid_match = re.search(r'/(\d+)\.html', url)
                             if pid_match: pid = pid_match.group(1)
                         
                         if not pid:
@@ -519,7 +519,7 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
         if not mileage:
             # Look for "2019 Ford Fiesta 117k" or "2019 Ford Fiesta 117000"
             # We look for a number (optionally with k) at the END of the title
-            title_match = re.search(r'\\s(\\d{1,3}k|\\d{4,6}k|\\d{4,6})\\s*$', title, re.IGNORECASE)
+            title_match = re.search(r'\s(\d{1,3}k|\d{4,6}k|\d{4,6})\s*$', title, re.IGNORECASE)
             if title_match:
                 val = title_match.group(1).lower()
                 try:
@@ -919,10 +919,10 @@ async def run_scraper(event: dict) -> dict:
                         db = create_client(SUPABASE_URL, SUPABASE_KEY)
                         # We only care about PIDs from this city to keep the set small
                         # and only from the last 30 days to keep performance high
-                        res = db.table("leads") \\
-                            .select("external_id") \\
-                            .eq("dealer_id", dealer_id) \\
-                            .eq("city", city) \\
+                        res = db.table("leads") \
+                            .select("external_id") \
+                            .eq("dealer_id", dealer_id) \
+                            .eq("city", city) \
                             .execute()
                         existing_pids = {row["external_id"] for row in res.data}
                         log_info(f"[{city}] Initialized with {len(existing_pids)} existing PIDs.")
