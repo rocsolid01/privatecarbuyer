@@ -41,6 +41,7 @@ export default function SettingsPage() {
         maxYear: '',
         minPrice: '',
         maxPrice: '',
+        minMileage: '',
         maxMileage: '',
         minMargin: '',
         status: '',
@@ -311,6 +312,7 @@ export default function SettingsPage() {
 
             // Mileage Filter
             const mileage = l.mileage;
+            const matchesMinMileage = !filters.minMileage || (mileage !== null && mileage >= parseInt(filters.minMileage));
             const matchesMileage = !filters.maxMileage || (mileage !== null && mileage <= parseInt(filters.maxMileage));
 
             // Margin Filter
@@ -329,8 +331,8 @@ export default function SettingsPage() {
             const diffDays = postDate ? (new Date().getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24) : 999;
             const matchesAge = !filters.maxDaysOld || (diffDays <= parseInt(filters.maxDaysOld));
 
-            return matchesSearch && matchesCity && matchesMinYear && matchesMaxYear && 
-                   matchesMinPrice && matchesMaxPrice && matchesMileage && matchesMargin && 
+            return matchesSearch && matchesCity && matchesMinYear && matchesMaxYear &&
+                   matchesMinPrice && matchesMaxPrice && matchesMinMileage && matchesMileage && matchesMargin &&
                    matchesStatus && matchesTitle && matchesAge;
         });
     }, [leads, filters]);

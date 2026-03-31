@@ -1,14 +1,12 @@
 "use client";
 
 import React from 'react';
-import { 
-    Target, 
-    X, 
-    DollarSign, 
-    TrendingUp, 
-    MapPin, 
+import {
+    Target,
+    X,
+    DollarSign,
+    TrendingUp,
 } from 'lucide-react';
-import { Lead } from '@/types/database';
 
 export interface DealershipFilters {
     search: string;
@@ -17,6 +15,7 @@ export interface DealershipFilters {
     maxYear: string;
     minPrice: string;
     maxPrice: string;
+    minMileage: string;
     maxMileage: string;
     minMargin: string;
     status: string;
@@ -51,6 +50,7 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
             maxYear: '',
             minPrice: '',
             maxPrice: '',
+            minMileage: '',
             maxMileage: '',
             minMargin: '',
             status: '',
@@ -174,27 +174,39 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({
                             </div>
                         </div>
 
-                        {/* Logistics */}
+                        {/* Odometer */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Odometer & Title</label>
-                            <div className="grid grid-cols-2 gap-4">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Odometer (Miles)</label>
+                            <div className="flex gap-4">
                                 <input
                                     type="number"
-                                    placeholder="Max Miles"
+                                    placeholder="Min (e.g. 10000)"
+                                    value={filters.minMileage}
+                                    onChange={(e) => handleChange('minMileage', e.target.value)}
+                                    className="w-1/2 bg-slate-950/60 border border-white/5 rounded-2xl py-4 px-6 text-xs text-white font-bold focus:border-indigo-500/50 transition-all outline-none italic"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Max (e.g. 120000)"
                                     value={filters.maxMileage}
                                     onChange={(e) => handleChange('maxMileage', e.target.value)}
-                                    className="w-full bg-slate-950/60 border border-white/5 rounded-2xl py-4 px-6 text-xs text-white font-bold focus:border-indigo-500/50 transition-all outline-none italic"
+                                    className="w-1/2 bg-slate-950/60 border border-white/5 rounded-2xl py-4 px-6 text-xs text-white font-bold focus:border-indigo-500/50 transition-all outline-none italic"
                                 />
-                                <select
-                                    value={filters.titleStatus}
-                                    onChange={(e) => handleChange('titleStatus', e.target.value)}
-                                    className="w-full bg-slate-950/60 border border-white/5 rounded-2xl py-4 px-6 text-xs text-white font-bold focus:border-indigo-500/50 transition-all outline-none italic appearance-none cursor-pointer"
-                                >
-                                    <option value="">ANY TITLE</option>
-                                    <option value="Clean">CLEAN ONLY</option>
-                                    <option value="Salvage">SALVAGE/REBUILT</option>
-                                </select>
                             </div>
+                        </div>
+
+                        {/* Title Status */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Title Status</label>
+                            <select
+                                value={filters.titleStatus}
+                                onChange={(e) => handleChange('titleStatus', e.target.value)}
+                                className="w-full bg-slate-950/60 border border-white/5 rounded-2xl py-4 px-6 text-xs text-white font-bold focus:border-indigo-500/50 transition-all outline-none italic appearance-none cursor-pointer"
+                            >
+                                <option value="">ANY TITLE</option>
+                                <option value="Clean">CLEAN ONLY</option>
+                                <option value="Salvage">SALVAGE/REBUILT</option>
+                            </select>
                         </div>
 
                         {/* Protocol Status */}
