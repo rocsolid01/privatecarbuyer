@@ -305,15 +305,19 @@ export default function SettingsPage() {
             const matchesMinYear = !filters.minYear || (year >= parseInt(filters.minYear));
             const matchesMaxYear = !filters.maxYear || (year > 0 && year <= parseInt(filters.maxYear));
 
-            // Price Filter
-            const price = l.price;
+            // Price Filter — treat 0 as unknown
+            const rawPrice = l.price;
+            const price = (rawPrice !== null && rawPrice > 0) ? rawPrice : null;
             const matchesMinPrice = !filters.minPrice || (price !== null && price >= parseInt(filters.minPrice));
-            const matchesMaxPrice = !filters.maxPrice || (price !== null && price <= parseInt(filters.maxPrice));
+            const matchesMaxPrice = !filters.maxPrice || price === null || price <= parseInt(filters.maxPrice);
 
-            // Mileage Filter
-            const mileage = l.mileage;
+            // Mileage Filter — treat null or 0 as unknown
+            // Max: only exclude leads with KNOWN mileage that exceeds the limit (unknown passes through)
+            // Min: only include leads with KNOWN mileage that meets the minimum (unknown excluded)
+            const rawMileage = l.mileage;
+            const mileage = (rawMileage !== null && rawMileage > 0) ? rawMileage : null;
             const matchesMinMileage = !filters.minMileage || (mileage !== null && mileage >= parseInt(filters.minMileage));
-            const matchesMileage = !filters.maxMileage || (mileage !== null && mileage <= parseInt(filters.maxMileage));
+            const matchesMileage = !filters.maxMileage || mileage === null || mileage <= parseInt(filters.maxMileage);
 
             // Margin Filter
             const margin = l.ai_margin;
