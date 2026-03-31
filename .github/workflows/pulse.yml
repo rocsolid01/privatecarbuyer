@@ -1,0 +1,22 @@
+name: Auto Scan Pulse
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # Every 30 minutes
+  workflow_dispatch:          # Allow manual trigger from GitHub UI
+
+jobs:
+  pulse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger pulse endpoint
+        run: |
+          STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X GET "https://privatecarbuyer.vercel.app/api/scraper/pulse")
+          cat /tmp/response.json
+          if [ "$STATUS" -ge 400 ]; then
+            echo "Pulse failed with status $STATUS"
+            exit 1
+          fi
+          echo "Pulse succeeded with status $STATUS"

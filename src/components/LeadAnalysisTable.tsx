@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Lead } from '@/types/database';
 import {
     ExternalLink,
@@ -12,7 +12,8 @@ import {
     DollarSign,
     Calendar,
     Send,
-    Clock
+    Clock,
+    X
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -44,20 +45,39 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
     maximized = false
 }: LeadAnalysisTableProps) => {
     const [sortConfig, setSortConfig] = useState({ key: 'post_time', direction: 'desc' } as any);
+    const [postedDateFilter, setPostedDateFilter] = useState<{ startDate: string; endDate: string } | null>(null);
 
-    const sortedLeads = [...leads].sort((a: any, b: any) => {
-        let aVal: any = a[sortConfig.key as keyof Lead];
-        let bVal: any = b[sortConfig.key as keyof Lead];
+    const sortedLeads = useMemo(() => {
+        let filtered = [...leads];
 
-        if (sortConfig.key === 'post_year') {
-            aVal = new Date(a.post_time).getFullYear();
-            bVal = new Date(b.post_time).getFullYear();
+        // Apply posted date filter
+        if (postedDateFilter?.startDate || postedDateFilter?.endDate) {
+            const startDate = postedDateFilter.startDate ? new Date(postedDateFilter.startDate) : null;
+            const endDate = postedDateFilter.endDate ? new Date(postedDateFilter.endDate) : null;
+
+            filtered = filtered.filter((lead: Lead) => {
+                const postTime = new Date(lead.post_time);
+                if (startDate && postTime < startDate) return false;
+                if (endDate && postTime > new Date(endDate.getTime() + 86400000)) return false; // Include full day
+                return true;
+            });
         }
 
-        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-    });
+        // Sort
+        return filtered.sort((a: any, b: any) => {
+            let aVal: any = a[sortConfig.key as keyof Lead];
+            let bVal: any = b[sortConfig.key as keyof Lead];
+
+            if (sortConfig.key === 'post_year') {
+                aVal = new Date(a.post_time).getFullYear();
+                bVal = new Date(b.post_time).getFullYear();
+            }
+
+            if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [leads, postedDateFilter, sortConfig]);
 
     const requestSort = (key: SortConfig['key']) => {
         let direction: 'asc' | 'desc' = 'asc';
@@ -86,6 +106,41 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
     return (
         <div className={`glass-card bg-slate-950/20 border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl relative flex flex-col ${maximized ? 'h-full w-full max-h-none' : 'max-h-[700px]'}`}>
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-[100px] -z-10" />
+
+            {/* Posted Date Filter UI */}
+            <div className="border-b border-white/5 p-4 bg-slate-950/40">
+                <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-indigo-400" />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">Filter Posted Date:</span>
+                    </div>
+                    <input
+                        type="date"
+                        value={postedDateFilter?.startDate || ''}
+                        onChange={(e) => setPostedDateFilter(prev => ({ startDate: e.target.value, endDate: prev?.endDate || '' }))}
+                        className="px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 focus:border-indigo-500 focus:outline-none"
+                    />
+                    <span className="text-slate-500 text-[10px]">to</span>
+                    <input
+                        type="date"
+                        value={postedDateFilter?.endDate || ''}
+                        onChange={(e) => setPostedDateFilter(prev => ({ startDate: prev?.startDate || '', endDate: e.target.value }))}
+                        className="px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 focus:border-indigo-500 focus:outline-none"
+                    />
+                    {(postedDateFilter?.startDate || postedDateFilter?.endDate) && (
+                        <button
+                            onClick={() => setPostedDateFilter(null)}
+                            className="ml-2 p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded transition-all"
+                            title="Clear filter"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
+                    <span className="ml-auto text-[9px] text-slate-500 font-bold italic">
+                        Showing {sortedLeads.length} of {leads.length} listings
+                    </span>
+                </div>
+            </div>
 
             <div className="overflow-auto scrollbar-thin scrollbar-thumb-slate-800 flex-1">
                 <table className="w-full text-left border-collapse table-fixed min-w-[1500px]">

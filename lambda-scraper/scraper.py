@@ -919,11 +919,11 @@ async def run_scraper(event: dict) -> dict:
                         db = create_client(SUPABASE_URL, SUPABASE_KEY)
                         # We only care about PIDs from this city to keep the set small
                         # and only from the last 30 days to keep performance high
-                        res = db.table("leads") \
-                            .select("external_id") \
-                            .eq("dealer_id", dealer_id) \
-                            .eq("city", city) \
-                            .execute()
+                        res = (db.table("leads")
+                            .select("external_id")
+                            .eq("dealer_id", dealer_id)
+                            .eq("city", city)
+                            .execute())
                         existing_pids = {row["external_id"] for row in res.data}
                         log_info(f"[{city}] Initialized with {len(existing_pids)} existing PIDs.")
                     except Exception as pe:
@@ -1031,7 +1031,22 @@ async def autonomous_pulse_loop():
             
             try:
                 run_res = await run_scraper(payload)
-                results.append({"dealer_id": s["id"], "success": True, "count": run_res.get("count", 0)})
+                # Normalize result: run_scraper may return { success: false, reason: 'cooldown' }
+                success_flag = bool(run_res.get("success"))
+                if success_flag:
+                    results.append({"dealer_id": s["id"], "success": True, "count": run_res.get("count", 0)})
+                else:
+                    reason = run_res.get("reason") or run_res.get("error") or "unknown"
+                    log_info(f"[PULSE] Run for {s['id']} returned non-success: {reason}")
+                    results.append({"dealer_id": s["id"], "success": False, "reason": reason, "details": run_res})
+
+                # Record last attempt / pulse timestamp in settings so UI and cooldowns reflect activity
+                try:
+                    now_ts = datetime.now(timezone.utc).isoformat()
+                    db.table("settings").update({"last_pulse_at": now_ts}).eq("id", s["id"]).execute()
+                    log_info(f"[PULSE] Updated last_pulse_at for {s['id']} -> {now_ts}")
+                except Exception as upd_e:
+                    log_error(f"[PULSE] Failed to update settings timestamps for {s['id']}: {upd_e}")
             except Exception as e:
                 log_error(f"[PULSE] Run failed for {s['id']}: {e}")
                 results.append({"dealer_id": s["id"], "success": False, "error": str(e)})

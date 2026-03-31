@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { adminSupabase } from '@/lib/supabase';
 import { runScraper } from '@/lib/scraper';
+
+export const maxDuration = 60;
 
 /**
  * POST /api/scraper/run
@@ -11,7 +13,7 @@ import { runScraper } from '@/lib/scraper';
  */
 export async function POST(req: NextRequest) {
     try {
-        const { data: settings, error: settingsError } = await supabase
+        const { data: settings, error: settingsError } = await adminSupabase
             .from('settings')
             .select('*')
             .order('updated_at', { ascending: false })

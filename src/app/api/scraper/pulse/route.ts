@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { adminSupabase } from '@/lib/supabase';
 import { runScraper } from '@/lib/scraper';
+
+export const maxDuration = 60;
 
 /**
  * GET /api/scraper/pulse
@@ -11,7 +13,7 @@ import { runScraper } from '@/lib/scraper';
  */
 export async function GET(req: NextRequest) {
     try {
-        const { data: allSettings } = await supabase.from('settings').select('*');
+        const { data: allSettings } = await adminSupabase.from('settings').select('*');
         if (!allSettings || allSettings.length === 0) {
             return Response.json({ success: true, message: 'No settings records found.' });
         }
