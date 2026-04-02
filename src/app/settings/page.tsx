@@ -11,6 +11,7 @@ import { Lead, Settings, SavedConfig } from '@/types/database';
 // @ts-ignore
 import { Save, MapPin, Target, Bell, Zap, MessageSquare, ExternalLink, CheckCircle2, Clock, Play, Loader2, Archive, Send, Maximize2, Minimize2, X, Sliders, Timer, Download, Trash2, Plus, RotateCcw, Search, ChevronRight, Check, Filter, Settings as SettingsIcon } from 'lucide-react';
 import { LeadFilters, DealershipFilters } from '@/components/LeadFilters';
+import { resolveHomeCoords, getCitiesByDistance, CITY_COORDS, calculateDistance } from '@/lib/scraper';
 
 export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
@@ -287,6 +288,29 @@ export default function SettingsPage() {
         const cities = leads.map((l: Lead) => l.city).filter(Boolean);
         return Array.from(new Set(cities)) as string[];
     }, [leads]);
+
+    // Live city targeting preview based on current zip/city + radius
+    const cityTargetingPreview = useMemo(() => {
+        const { lat, lng, resolvedAs } = resolveHomeCoords(settings.zip || '');
+        const homeCoords = { lat, lng };
+        const radiusMiles = settings.radius ?? 200;
+
+        const allInRadius = getCitiesByDistance(homeCoords, radiusMiles);
+
+        const pool = (settings.locations && settings.locations.length > 0)
+            ? settings.locations
+                .map(name => ({
+                    name,
+                    distance: CITY_COORDS[name]
+                        ? calculateDistance(lat, lng, CITY_COORDS[name].lat, CITY_COORDS[name].lng)
+                        : 9999,
+                }))
+                .filter(c => c.distance <= radiusMiles)
+                .sort((a, b) => a.distance - b.distance)
+            : allInRadius;
+
+        return { resolvedAs, pool: pool.slice(0, 12) };
+    }, [settings.zip, settings.radius, settings.locations]);
 
     const filteredLeads = useMemo(() => {
         return leads.filter((l: Lead) => {
@@ -780,8 +804,31 @@ export default function SettingsPage() {
                                     <MapPin size={24} />
                                 </div>
                                 <div className="flex-1 space-y-3">
-                                    <label className="text-xs font-black text-slate-600 uppercase tracking-[0.4em]">Home ZIP</label>
-                                    <input type="text" value={settings.zip || ''} onChange={e => setSettings({ ...settings, zip: e.target.value } as any)} className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 font-black text-white text-lg focus:bg-slate-950 transition-all text-center tracking-widest" />
+                                    <label className="text-xs font-black text-slate-600 uppercase tracking-[0.4em]">Home City or ZIP</label>
+                                    <input
+                                        type="text"
+                                        value={settings.zip || ''}
+                                        onChange={e => setSettings({ ...settings, zip: e.target.value } as any)}
+                                        placeholder="e.g. Dallas or 75201"
+                                        className="w-full bg-slate-950/60 border border-white/5 rounded-2xl p-4 font-black text-white text-lg focus:bg-slate-950 transition-all text-center tracking-widest placeholder:text-slate-700 placeholder:text-sm placeholder:font-normal"
+                                    />
+                                    {cityTargetingPreview.pool.length > 0 && (
+                                        <div className="mt-2 space-y-1">
+                                            <p className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em]">
+                                                Resolved: <span className="text-white">{cityTargetingPreview.resolvedAs}</span> — Scraping nearest→farthest:
+                                            </p>
+                                            <div className="flex flex-wrap gap-1">
+                                                {cityTargetingPreview.pool.map((c, i) => (
+                                                    <span
+                                                        key={c.name}
+                                                        className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wide border ${i < 2 ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300' : 'bg-slate-900 border-white/5 text-slate-400'}`}
+                                                    >
+                                                        {i + 1}. {c.name} <span className="opacity-60">({Math.round(c.distance)}mi)</span>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex-1 space-y-3 font-black">
                                     <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-[1rem] text-indigo-400 font-black italic border border-white/10 group-hover:scale-110 transition-transform">6</div>
