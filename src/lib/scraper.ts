@@ -615,7 +615,7 @@ export async function runScraper(settings: Settings, isDeepScrape = false, isPul
         return `${name} (${Math.round(dist)}mi)`;
     }).join(', ');
 
-    const mode = 'HOT ZONE (ANCHORED)';
+    const mode = 'HOT ZONE';
     console.log(`[Tiered Sniper] ${mode} → [${cityDisplay}] (Anchored: ${anchored.join(', ')})`);
 
     // ── 5. Log Scrape Run Record ───────────────────────────────────────────
