@@ -55,6 +55,15 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onAction, isSelected, 
                     />
                     <StatusBadge status={lead.status} />
                 </div>
+                {lead.ai_score != null && (
+                    <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-xl font-black text-[10px] tracking-widest backdrop-blur-sm border ${
+                        lead.ai_score >= 75 ? 'bg-emerald-500/80 border-emerald-400/50 text-white' :
+                        lead.ai_score >= 50 ? 'bg-amber-500/80 border-amber-400/50 text-white' :
+                        'bg-slate-800/80 border-white/10 text-slate-400'
+                    }`}>
+                        {lead.ai_score}
+                    </div>
+                )}
             </div>
 
             <div className="p-4 space-y-3">
@@ -84,6 +93,32 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onAction, isSelected, 
                         </div>
                     )}
                 </div>
+
+                {/* Market spread + seller flags row */}
+                {(lead.market_avg || lead.seller_flags?.flags?.length || lead.is_dealer_flag) && (
+                    <div className="flex flex-wrap gap-1.5">
+                        {lead.market_avg && lead.price && (
+                            <span className={`px-2 py-0.5 rounded-lg text-[8px] font-black italic tracking-widest border ${
+                                lead.market_avg - lead.price > 0
+                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                    : 'bg-slate-800 border-white/5 text-slate-500'
+                            }`}>
+                                {lead.market_avg - lead.price > 0 ? '↓' : '↑'}
+                                ${Math.abs(lead.market_avg - lead.price).toLocaleString()} vs mkt
+                            </span>
+                        )}
+                        {lead.seller_flags?.flags?.includes('HIGH_MOTIVATION') && (
+                            <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded-lg text-[8px] font-black text-orange-400 italic tracking-widest">
+                                🔥 Motivated
+                            </span>
+                        )}
+                        {lead.is_dealer_flag && (
+                            <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-lg text-[8px] font-black text-red-400 italic tracking-widest">
+                                ⚠ Dealer
+                            </span>
+                        )}
+                    </div>
+                )}
 
                 {lead.ai_notes && (
                     <div className="p-4 bg-indigo-600/5 border border-indigo-500/10 rounded-2xl relative overflow-hidden group/note">

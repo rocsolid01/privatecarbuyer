@@ -77,6 +77,22 @@ export type Lead = {
     ai_margin: number | null;
     ai_recon_est: number | null;
     ai_notes: string | null;
+    // AI Scoring v2
+    ai_score: number | null;          // 0–100 composite deal score
+    market_avg: number | null;        // AutoTempest/Infermatic estimated market value
+    market_sample: number | null;     // Number of comps used
+    price_history: { price: number; timestamp: string }[] | null;  // Price change tracking
+    nhtsa_data: {
+        make?: string; model?: string; year?: string; trim?: string;
+        body_style?: string; engine?: string; error_code?: string;
+    } | null;
+    seller_flags: {
+        is_dealer: boolean;
+        motivation_score: number;
+        amateur_signals: number;
+        flags: string[];
+    } | null;
+    is_dealer_flag: boolean | null;
     status: 'New' | 'Contacted' | 'Negotiating' | 'Meeting Set' | 'Bought' | 'Dead';
     title_status: string | null;
     is_clean_title: boolean;

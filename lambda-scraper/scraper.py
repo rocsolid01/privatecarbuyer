@@ -49,6 +49,8 @@ def log_warn(msg): print(f"[WARN] {msg}", flush=True)
 PROXY_URL = os.environ.get("PROXY_URL", "")          # DataImpulse residential proxy
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")    # Service-role key (bypasses RLS)
+INFERMATIC_API_KEY = os.environ.get("INFERMATIC_API_KEY", "")
+INFERMATIC_API_URL = "https://api.infermatic.ai/v1"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constants
@@ -192,6 +194,262 @@ def _extract_year(title: str) -> Optional[int]:
     """Extract 4-digit year from title (e.g. '2019 Toyota Camry')."""
     match = re.search(r"\b(19|20)\d{2}\b", title)
     return int(match.group(0)) if match else None
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AI Scoring Helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _decode_vin(vin: str) -> Optional[dict]:
+    """
+    NHTSA free VIN decode (no API key needed).
+    Returns structured dict with make/model/year/trim/body_style.
+    """
+    import urllib.request
+    try:
+        url = f"https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/{vin}?format=json"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode())
+        results = {
+            r["Variable"]: r["Value"]
+            for r in data.get("Results", [])
+            if r.get("Value") and r["Value"] not in ("", "Not Applicable", "0")
+        }
+        return {
+            "make": results.get("Make"),
+            "model": results.get("Model"),
+            "year": results.get("Model Year"),
+            "trim": results.get("Trim"),
+            "body_style": results.get("Body Class"),
+            "engine": results.get("Engine Configuration"),
+            "error_code": results.get("Error Code", "0"),
+        }
+    except Exception as e:
+        log_warn(f"[NHTSA] VIN decode failed for {vin}: {e}")
+        return None
+
+
+def _check_seller_flags(title: str, description: str) -> dict:
+    """
+    Analyze title + description for dealer detection and motivation signals.
+    Returns a dict safe to store as JSONB in Supabase.
+    """
+    text = f"{title} {description}".lower()
+
+    dealer_patterns = [
+        "dealer", "dealership", "auto group", "motors inc", "auto sales",
+        "certified pre-owned", "cpo", "financing available", "we finance",
+        "bad credit ok", "buy here pay here", "bhph", "trade-in welcome",
+    ]
+    motivation_patterns = [
+        "must sell", "moving", "relocating", "divorce", "urgent",
+        "need to sell", "make offer", "obo", "or best offer",
+        "price reduced", "reduced price", "quick sale", "motivated seller",
+        "job loss", "medical", "deployed", "military", "estate sale",
+        "inherited", "immediate sale", "asap", "today only", "no low ball",
+        "serious buyers only", "priced to sell",
+    ]
+    private_signals = [
+        "one owner", "single owner", "bought new", "garage kept",
+        "well maintained", "never smoked", "clean carfax", "carfax available",
+        "receipts", "service records", "original owner",
+    ]
+
+    is_dealer = any(p in text for p in dealer_patterns)
+    motivation_score = sum(1 for p in motivation_patterns if p in text)
+    private_count = sum(1 for p in private_signals if p in text)
+
+    flags = []
+    if is_dealer:
+        flags.append("DEALER_DETECTED")
+    if motivation_score >= 2:
+        flags.append("HIGH_MOTIVATION")
+    elif motivation_score == 1:
+        flags.append("MOTIVATED_SELLER")
+    if private_count >= 2:
+        flags.append("PRIVATE_SELLER_SIGNALS")
+
+    return {
+        "is_dealer": is_dealer,
+        "motivation_score": motivation_score,
+        "amateur_signals": private_count,
+        "flags": flags,
+    }
+
+
+def _get_market_comps(year: int, make: str, model: str) -> Optional[dict]:
+    """
+    Fetch market average price from AutoTempest via Zyte proxy.
+    Gracefully returns None on failure — non-critical.
+    """
+    if not (year and make and model):
+        return None
+    try:
+        import httpx
+        make_enc = make.lower().replace(" ", "+")
+        model_enc = model.lower().replace(" ", "+")
+        url = (
+            f"https://www.autotempest.com/results?"
+            f"make={make_enc}&model={model_enc}&zip=90210&radius=500"
+            f"&minyear={year}&maxyear={year}"
+        )
+        proxies = None
+        if PROXY_URL:
+            proxies = {"http://": PROXY_URL, "https://": PROXY_URL}
+
+        with httpx.Client(timeout=15, proxies=proxies, follow_redirects=True) as client:
+            resp = client.get(url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            })
+
+        if resp.status_code != 200:
+            log_warn(f"[COMPS] AutoTempest returned {resp.status_code}")
+            return None
+
+        # Extract price patterns from raw HTML
+        price_matches = re.findall(r'\$\s*(\d{1,3}(?:,\d{3})*)', resp.text)
+        prices = []
+        for p in price_matches:
+            val = int(p.replace(",", ""))
+            if 1500 <= val <= 120000:
+                prices.append(val)
+
+        if len(prices) < 3:
+            log_warn(f"[COMPS] Not enough price data for {year} {make} {model}: {len(prices)} found")
+            return None
+
+        prices.sort()
+        # Trim top/bottom 10% outliers
+        trim = max(1, len(prices) // 10)
+        trimmed = prices[trim:-trim] if len(prices) > 10 else prices
+        avg = sum(trimmed) // len(trimmed)
+
+        log_info(f"[COMPS] {year} {make} {model}: market avg ${avg:,} ({len(trimmed)} comps)")
+        return {
+            "market_avg": avg,
+            "market_sample": len(trimmed),
+            "market_low": trimmed[0],
+            "market_high": trimmed[-1],
+        }
+    except Exception as e:
+        log_warn(f"[COMPS] Market comp fetch failed for {year} {make} {model}: {e}")
+        return None
+
+
+def _score_lead_with_ai(
+    title: str,
+    price: Optional[int],
+    mileage: Optional[int],
+    year: Optional[int],
+    description: str,
+    seller_flags: dict,
+    nhtsa_data: Optional[dict],
+    market_avg: Optional[int],
+    title_status: str,
+) -> Optional[dict]:
+    """
+    Call Infermatic (Mixtral) to produce a structured deal quality score.
+    Returns None if API key missing or call fails.
+    """
+    if not INFERMATIC_API_KEY:
+        log_warn("[AI] INFERMATIC_API_KEY not set — skipping AI scoring.")
+        return None
+
+    import httpx
+
+    # Build market context string
+    market_ctx = ""
+    if market_avg and price:
+        spread = market_avg - price
+        pct = (spread / market_avg * 100) if market_avg > 0 else 0
+        market_ctx = f"Market avg (AutoTempest): ${market_avg:,}. Spread vs list: ${spread:,} ({pct:.0f}% below market)."
+    elif price:
+        market_ctx = f"No external market data available. Estimate market value from your training data."
+
+    nhtsa_ctx = ""
+    if nhtsa_data:
+        nhtsa_ctx = (
+            f"NHTSA Decoded: {nhtsa_data.get('year')} {nhtsa_data.get('make')} "
+            f"{nhtsa_data.get('model')} {nhtsa_data.get('trim', '')} "
+            f"({nhtsa_data.get('body_style', '')}). "
+            f"Engine: {nhtsa_data.get('engine', 'unknown')}. "
+            f"VIN error code: {nhtsa_data.get('error_code', '0')}."
+        )
+
+    seller_ctx = ""
+    if seller_flags:
+        flags_str = ", ".join(seller_flags.get("flags", [])) or "none"
+        seller_ctx = (
+            f"Seller signals: motivation score {seller_flags.get('motivation_score', 0)}/5, "
+            f"private seller signals {seller_flags.get('amateur_signals', 0)}/5, "
+            f"flags: [{flags_str}]."
+        )
+
+    prompt = f"""You are an expert used-car acquisitions analyst for a franchise car dealership.
+Evaluate this private seller listing and score the deal quality (0-100 points).
+
+LISTING DATA:
+- Title: {title}
+- Asking Price: ${price:,} {f'(market avg: ${market_avg:,})' if market_avg else ''}
+- Mileage: {f'{mileage:,} miles' if mileage else 'Not listed'}
+- Model Year: {year or 'Unknown'}
+- Title Status: {title_status}
+- Description: {(description[:600] + '...') if len(description) > 600 else description}
+{market_ctx}
+{nhtsa_ctx}
+{seller_ctx}
+
+SCORING RUBRIC (total 100 pts + ±15 AI adjustment):
+1. Price-to-Market Spread (40 pts): How far below market is the asking price?
+2. Make/Model Demand Profile (25 pts): Is this make/model fast-moving retail inventory?
+3. Mileage vs Recon Cost (15 pts): Estimate reconditioning cost; lower miles = more pts.
+4. Title Status (8 pts): Clean = full 8; Salvage/Rebuilt = 0.
+5. Seller Pressure Signals (12 pts): Motivation keywords, price reductions, urgency.
+6. Legitimacy Gate: Deduct 30 pts if dealer-posted; pass/fail.
+
+Respond ONLY with a valid JSON object. No explanation outside the JSON:
+{{
+  "score": <integer 0-100>,
+  "recommendation": "<BUY|WATCH|PASS>",
+  "market_value_estimate": <integer USD>,
+  "margin_estimate": <integer USD profit after recon>,
+  "recon_estimate": <integer USD reconditioning cost>,
+  "spread_pct": <float percentage below market>,
+  "seller_analysis": "<1-sentence seller profile>",
+  "deal_summary": "<2-3 sentence deal assessment>",
+  "risk_flags": ["<flag1>", "<flag2>"]
+}}"""
+
+    try:
+        with httpx.Client(timeout=30) as client:
+            resp = client.post(
+                f"{INFERMATIC_API_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {INFERMATIC_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"},
+                    "temperature": 0.2,
+                    "max_tokens": 400,
+                },
+            )
+
+        if resp.status_code != 200:
+            log_warn(f"[AI] Infermatic returned {resp.status_code}: {resp.text[:200]}")
+            return None
+
+        content = resp.json()["choices"][0]["message"]["content"]
+        result = json.loads(content)
+        log_info(f"[AI] Score: {result.get('score')} | Rec: {result.get('recommendation')} | Margin: ${result.get('margin_estimate', 0):,}")
+        return result
+    except Exception as e:
+        log_warn(f"[AI] Infermatic scoring failed: {e}")
+        return None
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Route-aborting: Drop images, CSS, fonts, analytics — saves ~90% bandwidth
@@ -363,29 +621,90 @@ async def scrape_city(
                         # log_info(f"[{city}] Skipping duplicate PID: {pid}")
                         continue
                     
-                    # 2. Conditional Deep Scrape if mileage is missing
-                    # Only if we haven't hit our safety budget for this city
-                    if not lead.get("mileage") and deep_scrape_count < MAX_DEEP_SCRAPES_PER_CITY:
-                        log_info(f"[{city}] Missing mileage for {pid}. Performing conditional deep scrape...")
-                        _jitter() # Be nice
+                    # Quick seller flag check on title alone (no network cost)
+                    lead["seller_flags"] = _check_seller_flags(lead.get("title", ""), "")
+                    lead["is_dealer_flag"] = lead["seller_flags"].get("is_dealer", False)
+
+                    # Deep scrape: trigger when mileage missing OR within AI scoring budget
+                    # Budget split: first half reserved for mileage recovery, second for AI enrichment
+                    ai_budget = MAX_DEEP_SCRAPES_PER_CITY // 2
+                    should_deep = (
+                        not lead.get("mileage") and deep_scrape_count < MAX_DEEP_SCRAPES_PER_CITY
+                    ) or (
+                        deep_scrape_count < ai_budget
+                    )
+
+                    if should_deep:
+                        log_info(f"[{city}] Deep scraping {pid} (mileage={'missing' if not lead.get('mileage') else 'ok'}, budget={deep_scrape_count}/{MAX_DEEP_SCRAPES_PER_CITY})")
+                        _jitter()
                         details = await scrape_deep(context, lead["url"])
                         deep_scrape_count += 1
-                        
+
                         if details:
+                            # Core fields
                             if details.get("mileage"):
                                 lead["mileage"] = details["mileage"]
-                                log_info(f"[{city}] Successfully recovered mileage: {lead['mileage']}")
-                            
-                            # Map additional details to DB columns
+                                log_info(f"[{city}] Recovered mileage: {lead['mileage']}")
                             if details.get("description"):
-                                # Use ai_notes as the destination for the raw description if it's short, or truncated
-                                lead["ai_notes"] = details["description"][:2000] # Cap to reasonable length
+                                lead["ai_notes"] = details["description"][:2000]
                             if details.get("photos"):
                                 lead["photos"] = details["photos"]
                             if details.get("vin"):
                                 lead["vin"] = details["vin"]
                             if details.get("license_plate"):
                                 lead["license_plate"] = details["license_plate"]
+
+                            # Refined seller flags with full description
+                            sf = _check_seller_flags(lead.get("title", ""), details.get("description", ""))
+                            lead["seller_flags"] = sf
+                            lead["is_dealer_flag"] = sf.get("is_dealer", False)
+
+                            # NHTSA VIN Decode
+                            vin = lead.get("vin")
+                            if vin:
+                                nhtsa = _decode_vin(vin)
+                                if nhtsa:
+                                    lead["nhtsa_data"] = nhtsa
+                                    log_info(f"[{city}] NHTSA: {nhtsa.get('year')} {nhtsa.get('make')} {nhtsa.get('model')}")
+
+                            # Market Comps via AutoTempest
+                            nhtsa_d = lead.get("nhtsa_data") or {}
+                            comp_make = nhtsa_d.get("make")
+                            comp_model = nhtsa_d.get("model")
+                            comp_year = lead.get("year")
+                            if comp_make and comp_model and comp_year:
+                                comps = _get_market_comps(comp_year, comp_make, comp_model)
+                                if comps:
+                                    lead["market_avg"] = comps["market_avg"]
+                                    lead["market_sample"] = comps["market_sample"]
+
+                            # Full AI Scoring via Infermatic
+                            ai_result = _score_lead_with_ai(
+                                title=lead.get("title", ""),
+                                price=lead.get("price"),
+                                mileage=lead.get("mileage"),
+                                year=lead.get("year"),
+                                description=details.get("description", ""),
+                                seller_flags=lead.get("seller_flags", {}),
+                                nhtsa_data=lead.get("nhtsa_data"),
+                                market_avg=lead.get("market_avg"),
+                                title_status=lead.get("title_status", "Clean"),
+                            )
+                            if ai_result:
+                                lead["ai_score"] = ai_result.get("score")
+                                lead["ai_margin"] = ai_result.get("margin_estimate", lead.get("ai_margin"))
+                                lead["ai_recon_est"] = ai_result.get("recon_estimate")
+                                # Build rich ai_notes: seller analysis + deal summary
+                                notes_parts = []
+                                rec = ai_result.get("recommendation", "")
+                                if rec:
+                                    notes_parts.append(f"[{rec}]")
+                                if ai_result.get("deal_summary"):
+                                    notes_parts.append(ai_result["deal_summary"])
+                                if ai_result.get("seller_analysis"):
+                                    notes_parts.append(ai_result["seller_analysis"])
+                                if notes_parts:
+                                    lead["ai_notes"] = " ".join(notes_parts)
 
                     leads.append(lead)
             except Exception as e:
@@ -773,11 +1092,14 @@ def upsert_leads(leads: list[dict], dealer_id: str) -> int:
 
     db = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    # Define valid columns for Supabase 'leads' table (preventing insertion errors if extra keys like 'description' exist)
+    # Define valid columns for Supabase 'leads' table
     VALID_COLUMNS = {
         "external_id", "title", "price", "mileage", "vin", "license_plate", "location", "url", "photos",
-        "post_time", "ai_margin", "ai_notes", "status", "dealer_id", "created_at",
-        "city", "year", "title_status", "is_clean_title", "scraped_at", "meta_text", "raw_title"
+        "post_time", "ai_margin", "ai_recon_est", "ai_notes", "status", "dealer_id", "created_at",
+        "city", "year", "title_status", "is_clean_title", "scraped_at", "meta_text", "raw_title",
+        # AI Scoring v2
+        "ai_score", "market_avg", "market_sample", "price_history",
+        "nhtsa_data", "seller_flags", "is_dealer_flag",
     }
 
     leads_to_save = []
@@ -789,39 +1111,73 @@ def upsert_leads(leads: list[dict], dealer_id: str) -> int:
     try:
         # 1. Extract all external_ids
         external_ids = [l["external_id"] for l in leads_to_save if "external_id" in l]
-        
-        # 2. Query Supabase for existing leads to check mileage status
-        existing_res = db.table("leads").select("external_id, mileage").in_("external_id", external_ids).execute()
-        existing_data = {row["external_id"]: row.get("mileage") for row in existing_res.data}
-        
+
+        # 2. Query existing leads for mileage + price (for price history tracking)
+        existing_res = db.table("leads").select("external_id, mileage, price, price_history").in_("external_id", external_ids).execute()
+        existing_data = {
+            row["external_id"]: {
+                "mileage": row.get("mileage"),
+                "price": row.get("price"),
+                "price_history": row.get("price_history") or [],
+            }
+            for row in existing_res.data
+        }
+
         # 3. Filter only completely new leads
         new_leads = [l for l in leads_to_save if l["external_id"] not in existing_data]
-        
-        # 4. Identify existing leads that need a mileage update
+
+        # 4. Identify existing leads needing updates (mileage recovery, price change, AI enrichment)
         update_leads = []
+        now_ts = datetime.now(timezone.utc).isoformat()
         for l in leads_to_save:
             ext_id = l["external_id"]
-            if ext_id in existing_data and existing_data[ext_id] is None and l.get("mileage") is not None:
-                update_leads.append(l)
+            if ext_id not in existing_data:
+                continue
+            existing = existing_data[ext_id]
+            updates: dict = {}
+
+            # Mileage recovery
+            if existing["mileage"] is None and l.get("mileage") is not None:
+                updates["mileage"] = l["mileage"]
+
+            # Price history tracking: record price drop/change
+            new_price = l.get("price")
+            old_price = existing.get("price")
+            if new_price and old_price and new_price != old_price:
+                history = existing.get("price_history") or []
+                history.append({"price": old_price, "timestamp": now_ts})
+                updates["price"] = new_price
+                updates["price_history"] = history[-10:]  # Keep last 10 entries
+                log_info(f"[DB] Price change on {ext_id}: ${old_price:,} → ${new_price:,}")
+
+            # AI enrichment: fill in ai_score/market_avg/seller_flags if newly computed
+            for ai_col in ("ai_score", "market_avg", "market_sample", "nhtsa_data", "seller_flags",
+                           "is_dealer_flag", "ai_margin", "ai_recon_est", "ai_notes"):
+                if l.get(ai_col) is not None:
+                    updates[ai_col] = l[ai_col]
+
+            if updates:
+                updates["external_id"] = ext_id
+                update_leads.append(updates)
 
         processed_count = 0
-        
+
         # 5. Insert new leads
         if new_leads:
             db.table("leads").insert(new_leads).execute()
             log_info(f"[DB] Inserted {len(new_leads)} new leads.")
             processed_count += len(new_leads)
 
-        # 6. Update mileage for existing leads if found
+        # 6. Update existing leads
         if update_leads:
-            log_info(f"[DB] Found {len(update_leads)} existing leads needing mileage updates.")
+            log_info(f"[DB] Updating {len(update_leads)} existing leads.")
             for ul in update_leads:
+                ext_id = ul.pop("external_id")
                 try:
-                    db.table("leads").update({"mileage": ul["mileage"]}).eq("external_id", ul["external_id"]).execute()
-                    log_info(f"[DB] Updated mileage for {ul['external_id']} to {ul['mileage']}")
+                    db.table("leads").update(ul).eq("external_id", ext_id).execute()
                     processed_count += 1
                 except Exception as ue:
-                    log_error(f"[DB] Failed to update mileage for {ul['external_id']}: {ue}")
+                    log_error(f"[DB] Failed to update {ext_id}: {ue}")
 
         return processed_count
     except Exception as e:

@@ -157,7 +157,7 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                             <th className="w-[20%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Target Ident</th>
                             <SortHeader label="Price" sortKey="price" width="w-[8%]" />
                             <SortHeader label="Mileage" sortKey="mileage" width="w-[10%]" />
-                            <th className="w-[18%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">AI Intelligence</th>
+                            <SortHeader label="AI Score" sortKey="ai_score" width="w-[18%]" />
                             <SortHeader label="Year" sortKey="post_year" width="w-[7%]" />
                             <SortHeader label="City" sortKey="city" width="w-[8%]" />
                             <SortHeader label="Status" sortKey="title_status" width="w-[7%]" />
@@ -221,20 +221,46 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     <span className="text-[7px] text-slate-600 ml-1">MI</span>
                                 </td>
                                 <td className="p-3">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-md">
-                                            <TrendingUp size={10} className="text-indigo-400" />
+                                    {/* Row 1: Score + Margin + Spread */}
+                                    <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                        {lead.ai_score != null && (
+                                            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md border font-black italic text-[9px] tracking-widest ${
+                                                lead.ai_score >= 75 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' :
+                                                lead.ai_score >= 50 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' :
+                                                'bg-red-500/10 border-red-500/20 text-red-400'
+                                            }`}>
+                                                <Zap size={8} />
+                                                {lead.ai_score}/100
+                                            </div>
+                                        )}
+                                        <div className="flex items-center gap-1 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-md">
+                                            <TrendingUp size={8} className="text-indigo-400" />
                                             <span className="text-[9px] font-bold text-indigo-400 uppercase italic tracking-widest">
-                                                ${lead.ai_margin?.toLocaleString() || '0'}
+                                                ${lead.ai_margin?.toLocaleString() || '—'}
                                             </span>
                                         </div>
-                                        {lead.ai_recon_est && lead.ai_recon_est > 0 && (
-                                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
-                                                <div className="w-1 h-1 bg-red-500 rounded-full" />
-                                                <span className="text-[8px] font-bold text-red-400 uppercase italic tracking-widest">Recon Exp</span>
+                                        {lead.market_avg && lead.price && (
+                                            <div className={`px-2 py-0.5 rounded-md border text-[8px] font-black italic tracking-widest ${
+                                                lead.market_avg - lead.price > 0
+                                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                                    : 'bg-slate-500/10 border-white/5 text-slate-500'
+                                            }`}>
+                                                {lead.market_avg - lead.price > 0 ? '↓' : '↑'}
+                                                ${Math.abs(lead.market_avg - lead.price).toLocaleString()} vs mkt
+                                            </div>
+                                        )}
+                                        {lead.seller_flags?.flags?.includes('HIGH_MOTIVATION') && (
+                                            <div className="px-1.5 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded text-[7px] font-black text-orange-400 uppercase tracking-widest">
+                                                🔥 Motivated
+                                            </div>
+                                        )}
+                                        {lead.is_dealer_flag && (
+                                            <div className="px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 rounded text-[7px] font-black text-red-400 uppercase tracking-widest">
+                                                ⚠ Dealer
                                             </div>
                                         )}
                                     </div>
+                                    {/* Row 2: Notes */}
                                     <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-lg p-2 group-hover/row:border-indigo-500/20 transition-all">
                                         <p className="text-[9px] text-slate-300 italic font-bold leading-tight line-clamp-2">
                                             {lead.ai_notes || "Awaiting neural analysis..."}
