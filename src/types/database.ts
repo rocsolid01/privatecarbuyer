@@ -68,6 +68,7 @@ export type Lead = {
     mileage: number | null;
     year: number | null;
     vin: string | null;
+    license_plate: string | null;
     location: string | null;
     distance: number | null;
     url: string;

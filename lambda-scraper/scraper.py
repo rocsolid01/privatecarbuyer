@@ -384,6 +384,8 @@ async def scrape_city(
                                 lead["photos"] = details["photos"]
                             if details.get("vin"):
                                 lead["vin"] = details["vin"]
+                            if details.get("license_plate"):
+                                lead["license_plate"] = details["license_plate"]
 
                     leads.append(lead)
             except Exception as e:
@@ -540,7 +542,16 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
         if 'salvage' in title_lower or 'rebuilt' in title_lower or 'restored' in title_lower:
             title_status = 'Salvage'
 
-        # 8. AI Margin Estimate
+        # 8. VIN — try to extract from title or meta text (some sellers include it)
+        # Standard VIN: 17 chars, no I, O, Q
+        vin = None
+        search_text = f"{title} {meta_text}"
+        vin_match = re.search(r'\b[A-HJ-NPR-Z0-9]{17}\b', search_text)
+        if vin_match:
+            vin = vin_match.group(0)
+            log_info(f"[{city}] VIN found in listing card: {vin}")
+
+        # 9. AI Margin Estimate
         ai_margin = None
         if price and price > 0:
             base_margin = price * 0.15
@@ -558,6 +569,7 @@ async def _parse_listing_element(item, city: str) -> Optional[dict]:
             "post_time": posted_at,
             "year": year,
             "mileage": mileage,
+            "vin": vin,
             "title_status": title_status,
             "is_clean_title": title_status == 'Clean',
             "status": "New",
@@ -698,13 +710,24 @@ async def scrape_deep(context: BrowserContext, url: str) -> Optional[dict]:
             if odometer:
                 log_info(f"[Deep] Found odometer in description text: {odometer}")
 
-        # 3. VIN
+        # 3. VIN — from attributes, then description
         vin = attrs.get("vin") or None
         if not vin and description:
-            # Simple VIN regex (17 chars, no I, O, Q)
             vin_match = re.search(r'\b[A-HJ-NPR-Z0-9]{17}\b', description)
             if vin_match:
                 vin = vin_match.group(0)
+
+        # 4. License Plate — sellers sometimes include in description
+        # Matches patterns like "plate: 7ABC123", "license: ABC1234", or standalone plate refs
+        license_plate = None
+        if description:
+            plate_match = re.search(
+                r'(?:plate|license\s*plate|lic\.?|reg\.?)\s*[:#]?\s*([A-Z0-9]{2,8})',
+                description, re.IGNORECASE
+            )
+            if plate_match:
+                license_plate = plate_match.group(1).upper()
+                log_info(f"[Deep] License plate found: {license_plate}")
 
         # 4. Photo URLs (from .slide img or meta)
         photos = []
@@ -723,6 +746,7 @@ async def scrape_deep(context: BrowserContext, url: str) -> Optional[dict]:
             "description": description,
             "mileage": odometer,
             "vin": vin,
+            "license_plate": license_plate,
             "photos": photos,
             "attributes": attrs,
         }
@@ -751,8 +775,8 @@ def upsert_leads(leads: list[dict], dealer_id: str) -> int:
 
     # Define valid columns for Supabase 'leads' table (preventing insertion errors if extra keys like 'description' exist)
     VALID_COLUMNS = {
-        "external_id", "title", "price", "mileage", "vin", "location", "url", "photos", 
-        "post_time", "ai_margin", "ai_notes", "status", "dealer_id", "created_at", 
+        "external_id", "title", "price", "mileage", "vin", "license_plate", "location", "url", "photos",
+        "post_time", "ai_margin", "ai_notes", "status", "dealer_id", "created_at",
         "city", "year", "title_status", "is_clean_title", "scraped_at", "meta_text", "raw_title"
     }
 
