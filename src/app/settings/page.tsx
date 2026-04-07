@@ -71,7 +71,7 @@ export default function SettingsPage() {
         margin_min: 1500,
         sms_numbers: ['+15551234567'],
         pulse_interval: 15,
-        max_items_per_city: 25,
+        max_items_per_city: 50,
         unicorn_threshold: 4000,
         outreach_sms_goal: 'Ask for bottom dollar',
         ai_persona: 'Professional but casual car buyer',
@@ -108,12 +108,15 @@ export default function SettingsPage() {
             setSettings({
                 ...settings,
                 ...data,
+                zip: data.zip || settings.zip,
+                location: data.location || settings.location,
                 locations: data.locations || settings.locations,
                 condition_include: data.condition_include || settings.condition_include,
                 condition_exclude: data.condition_exclude || settings.condition_exclude,
                 motivation_keywords: data.motivation_keywords || settings.motivation_keywords,
-                exclude_salvage: data.exclude_salvage ?? settings.exclude_salvage, 
-                auto_scan_enabled: data.auto_scan_enabled ?? settings.auto_scan_enabled, 
+                exclude_salvage: data.exclude_salvage ?? settings.exclude_salvage,
+                auto_scan_enabled: data.auto_scan_enabled ?? settings.auto_scan_enabled,
+                max_items_per_city: data.max_items_per_city || settings.max_items_per_city,
             });
         }
     };
@@ -465,7 +468,7 @@ export default function SettingsPage() {
             post_age_max: 1,
             margin_min: 1500,
             pulse_interval: 15,
-            max_items_per_city: 25,
+            max_items_per_city: 50,
             unicorn_threshold: 4000,
             recon_multiplier: 1.0,
             active_hour_start: 7,
@@ -732,10 +735,10 @@ export default function SettingsPage() {
                                             type="number"
                                             min={5}
                                             max={500}
-                                            value={(!settings.max_items_per_city || isNaN(settings.max_items_per_city)) ? 25 : settings.max_items_per_city}
+                                            value={(!settings.max_items_per_city || isNaN(settings.max_items_per_city)) ? 50 : settings.max_items_per_city}
                                             onChange={e => {
                                                 const parsed = parseInt(e.target.value);
-                                                setSettings({ ...settings, max_items_per_city: isNaN(parsed) ? 25 : parsed } as any);
+                                                setSettings({ ...settings, max_items_per_city: isNaN(parsed) ? 50 : parsed } as any);
                                             }}
                                             className="w-full bg-slate-950/80 border border-white/10 rounded-3xl p-8 font-black text-white text-center text-4xl focus:ring-4 focus:ring-indigo-500/30 focus:bg-slate-950 transition-all shadow-2xl"
                                         />
