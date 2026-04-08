@@ -534,89 +534,35 @@ export async function runScraper(settings: Settings, isDeepScrape = false, isPul
         return { success: true, message: `System is in sleep mode (Local LA Time: ${currentHour}:00).` };
     }
 
-    // ── Tiered City Selection ─────────────────────────────────────────────
+    // ── City Selection: user's locations only, sorted nearest→farthest ──────
     const { lat: homeLat, lng: homeLng, resolvedAs } = resolveHomeCoords(settings.zip || 'losangeles');
     const homeCoords = { lat: homeLat, lng: homeLng };
-    const radiusMiles = settings.radius ?? 200;
     console.log(`[City Targeting] Home resolved as: ${resolvedAs} (${homeLat}, ${homeLng})`);
 
-    // All cities within radius, sorted nearest→farthest
-    const allCitiesInRadius = getCitiesByDistance(homeCoords, radiusMiles);
+    const batchSize = settings.batch_size ?? 5;
 
-    // Base pool: if user specified locations, rank those by distance; otherwise use all in-radius cities
-    let cityPool = (settings.locations && settings.locations.length > 0)
-        ? settings.locations
+    // Use the user's saved locations, ranked nearest→farthest, capped at batch_size
+    let cities: string[] = [];
+    if (settings.locations && settings.locations.length > 0) {
+        cities = settings.locations
             .map(name => ({
                 name,
                 distance: CITY_COORDS[name]
                     ? calculateDistance(homeCoords.lat, homeCoords.lng, CITY_COORDS[name].lat, CITY_COORDS[name].lng)
                     : 9999,
             }))
-            .filter(c => c.distance <= radiusMiles)
             .sort((a, b) => a.distance - b.distance)
-        : allCitiesInRadius;
-
-    if (cityPool.length === 0) {
-        // Fallback: take the single closest city regardless of radius
-        cityPool = allCitiesInRadius.slice(0, 1);
-        if (cityPool.length === 0) cityPool = [{ name: resolvedAs === 'default' ? 'losangeles' : resolvedAs, distance: 0 }];
-    }
-    
-    const allCities = [...cityPool].sort((a, b) => a.distance - b.distance);
-
-    // -- Persistent Anchored Rotation Strategy --
-    // 1. "Anchored"      = 2 closest cities (always included every pulse)
-    // 2. "Rotating Pool" = remaining cities sorted closest-first
-    //
-    // We read last_city_index from the DB so BOTH manual and 30-min scrapes
-    // share the same sequential position — no city is skipped or repeated
-    // just because a manual run fired mid-cycle.
-    
-    const anchoredCount     = 2;
-    const anchored          = allCities.slice(0, anchoredCount).map(c => c.name);
-    const batchSize         = settings.batch_size ?? 5;
-    const rotatingBatchSize = Math.max(0, batchSize - anchoredCount);
-
-    // Pool: everything beyond the anchored cities, closest-first
-    const rotatingPool = allCities.slice(anchoredCount).map(c => c.name);
-
-    // Read the persistent index (defaults to 0 if column not yet populated)
-    const startIndex = typeof settings.last_city_index === 'number'
-        ? settings.last_city_index
-        : 0;
-
-    // Advance and wrap the index, then persist it immediately before triggering
-    const nextIndex = rotatingPool.length > 0
-        ? (startIndex + rotatingBatchSize) % rotatingPool.length
-        : 0;
-
-    try {
-        await adminSupabase
-            .from('settings')
-            .update({ last_city_index: nextIndex })
-            .eq('id', settings.id);
-    } catch (idxErr: any) {
-        console.error('[City Rotation] Failed to persist last_city_index:', idxErr.message);
+            .slice(0, batchSize)
+            .map(c => c.name);
     }
 
-    // Pick rotating cities starting at startIndex
-    const rotating: string[] = [];
-    if (rotatingPool.length > 0 && rotatingBatchSize > 0) {
-        for (let i = 0; i < rotatingBatchSize; i++) {
-            rotating.push(rotatingPool[(startIndex + i) % rotatingPool.length]);
-        }
+    // Fallback: closest known city to home
+    if (cities.length === 0) {
+        cities = [resolvedAs === 'default' ? 'losangeles' : resolvedAs];
     }
-
-    // Final set: anchored first (closest), then rotating fill
-    const cities = [...anchored.slice(0, batchSize), ...rotating].slice(0, batchSize);
-
-    const cityDisplay = cities.map(name => {
-        const dist = allCities.find(c => c.name === name)?.distance || 0;
-        return `${name} (${Math.round(dist)}mi)`;
-    }).join(', ');
 
     const mode = 'HOT ZONE';
-    console.log(`[Tiered Sniper] ${mode} → [${cityDisplay}] (Anchored: ${anchored.join(', ')})`);
+    console.log(`[Sniper] ${mode} → [${cities.join(', ')}]`);
 
     // ── 5. Log Scrape Run Record ───────────────────────────────────────────
     let runId: string | null = null;
