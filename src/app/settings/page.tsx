@@ -90,7 +90,7 @@ export default function SettingsPage() {
         body_styles: ['SUV', 'Truck', 'Sedan'],
         priority_models: ['Civic', 'Camry', 'F-150', 'Accord', 'CR-V'],
         recon_multiplier: 1.0,
-        active_hour_start: 7,
+        active_hour_start: 6,
         active_hour_end: 22,
         exclude_salvage: true,
         auto_scan_enabled: true,
