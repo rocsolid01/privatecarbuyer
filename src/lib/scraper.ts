@@ -534,16 +534,17 @@ export async function runScraper(settings: Settings, isDeepScrape = false, isPul
         return { success: true, message: `System is in sleep mode (Local LA Time: ${currentHour}:00).` };
     }
 
-    // ── City Selection: user's locations only, sorted nearest→farthest ──────
+    // ── City Selection: home city first, expand outward ──────────────────────
+    // Resolve home from the zip/city field, then sort ALL saved locations
+    // nearest → farthest. No cap — scrape every city the user configured.
     const { lat: homeLat, lng: homeLng, resolvedAs } = resolveHomeCoords(settings.zip || 'losangeles');
     const homeCoords = { lat: homeLat, lng: homeLng };
-    console.log(`[City Targeting] Home resolved as: ${resolvedAs} (${homeLat}, ${homeLng})`);
+    console.log(`[City Targeting] Home: ${resolvedAs} (${homeLat}, ${homeLng})`);
 
-    const batchSize = settings.batch_size ?? 5;
-
-    // Use the user's saved locations, ranked nearest→farthest, capped at batch_size
     let cities: string[] = [];
+
     if (settings.locations && settings.locations.length > 0) {
+        // Sort user's cities: home city slug first, then outward by distance
         cities = settings.locations
             .map(name => ({
                 name,
@@ -552,11 +553,10 @@ export async function runScraper(settings: Settings, isDeepScrape = false, isPul
                     : 9999,
             }))
             .sort((a, b) => a.distance - b.distance)
-            .slice(0, batchSize)
             .map(c => c.name);
     }
 
-    // Fallback: closest known city to home
+    // Fallback: just the home city
     if (cities.length === 0) {
         cities = [resolvedAs === 'default' ? 'losangeles' : resolvedAs];
     }
@@ -611,7 +611,7 @@ export async function runScraper(settings: Settings, isDeepScrape = false, isPul
         post_age_max: settings.post_age_max || 24,
         exclude_salvage: settings.exclude_salvage || false,
         posted_today: false,
-        max_items:   Math.min(500, settings.max_items_per_city || 25),
+        max_items:   (settings.max_items_per_city || 50) * Math.max(1, cities.length),
     };
 
     try {

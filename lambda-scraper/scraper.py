@@ -50,7 +50,7 @@ PROXY_URL = os.environ.get("PROXY_URL", "")          # DataImpulse residential p
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")    # Service-role key (bypasses RLS)
 INFERMATIC_API_KEY = os.environ.get("INFERMATIC_API_KEY", "")
-INFERMATIC_API_URL = "https://api.infermatic.ai/v1"
+INFERMATIC_API_URL = os.environ.get("INFERMATIC_API_URL", "https://api.totalgpt.ai/v1")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constants
@@ -430,11 +430,10 @@ Respond ONLY with a valid JSON object. No explanation outside the JSON:
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+                    "model": "Mixtral-8x7B-Instruct-v0.1",
                     "messages": [{"role": "user", "content": prompt}],
-                    "response_format": {"type": "json_object"},
                     "temperature": 0.2,
-                    "max_tokens": 400,
+                    "max_tokens": 500,
                 },
             )
 
@@ -443,7 +442,12 @@ Respond ONLY with a valid JSON object. No explanation outside the JSON:
             return None
 
         content = resp.json()["choices"][0]["message"]["content"]
-        result = json.loads(content)
+        # Extract JSON block — model may wrap it in markdown or add text
+        json_match = re.search(r'\{[\s\S]*\}', content)
+        if not json_match:
+            log_warn(f"[AI] No JSON found in response: {content[:200]}")
+            return None
+        result = json.loads(json_match.group(0))
         log_info(f"[AI] Score: {result.get('score')} | Rec: {result.get('recommendation')} | Margin: ${result.get('margin_estimate', 0):,}")
         return result
     except Exception as e:
@@ -727,10 +731,7 @@ async def scrape_city(
         if len(leads) >= max_items:
             break
 
-        # Cap at 3 pages per city per pulse (budget + time control)
-        if page_num >= 3:
-            log_info(f"[{city}] Reached 3-page cap. Moving on.")
-            break
+        # No hard page cap — paginate until Craigslist has no more results
 
         next_btn = await page.query_selector("a.cl-next-page, button.cl-next-page, .cl-next-result, a.bd-button.cl-next-page:not([aria-disabled='true'])")
         if not next_btn:
@@ -1207,14 +1208,14 @@ async def run_scraper(event: dict) -> dict:
     
     if run_id and SUPABASE_URL and SUPABASE_KEY:
         try:
-            log_info(f"[DB] Flagging run {run_id} as Running...")
+            log_info(f"[DB] Flagging run {run_id} as Partial (in-progress)...")
             db = create_client(SUPABASE_URL, SUPABASE_KEY)
             db.table("scrape_runs").update({
-                "status": "Running",
+                "status": "Partial",
                 "started_at": datetime.now(timezone.utc).isoformat()
             }).eq("id", run_id).execute()
         except Exception as se:
-            log_error(f"[DB] Failed to flag run as Running: {se}")
+            log_error(f"[DB] Failed to flag run as Partial: {se}")
 
     if proxy:
         log_info(f"Proxy: {proxy['server']}")
