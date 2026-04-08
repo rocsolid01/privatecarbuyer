@@ -122,8 +122,7 @@ export default function SettingsPage() {
     };
 
     const fetchSavedConfigs = async (uid?: string) => {
-        const targetUid = uid || dealerId;
-        if (!targetUid) return;
+        const targetUid = uid || dealerId || '00000000-0000-0000-0000-000000000000';
 
         const { data } = await supabase
             .from('saved_configs')
@@ -567,7 +566,7 @@ export default function SettingsPage() {
                             <div className="h-10 w-px bg-white/5 mx-2 hidden md:block" />
 
                             <button
-                                onClick={() => setIsLoadModalOpen(true)}
+                                onClick={() => { fetchSavedConfigs(); setIsLoadModalOpen(true); }}
                                 className="bg-slate-900 border border-white/10 hover:border-indigo-500/30 text-slate-300 hover:text-white px-6 py-4 rounded-[2rem] font-bold flex items-center gap-2 transition-all active:scale-95 uppercase tracking-[0.2em] text-[10px]"
                             >
                                 <Download size={14} />
@@ -1053,7 +1052,7 @@ export default function SettingsPage() {
                                                     {cfg.name}
                                                 </span>
                                                 <span className="text-slate-600 font-bold text-[9px] uppercase tracking-[0.2em] mt-1">
-                                                    Modified: {new Date(cfg.updated_at).toLocaleDateString()}
+                                                    Saved: {new Date(cfg.created_at).toLocaleDateString()}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
