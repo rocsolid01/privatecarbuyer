@@ -46,9 +46,16 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
 }: LeadAnalysisTableProps) => {
     const [sortConfig, setSortConfig] = useState({ key: 'post_time', direction: 'desc' } as any);
     const [postedDateFilter, setPostedDateFilter] = useState<{ startDate: string; endDate: string } | null>(null);
+    const [hoursAgoFilter, setHoursAgoFilter] = useState<string>('');
 
     const sortedLeads = useMemo(() => {
         let filtered = [...leads];
+
+        // Apply "posted within X hours" filter
+        if (hoursAgoFilter && Number(hoursAgoFilter) > 0) {
+            const cutoff = new Date(Date.now() - Number(hoursAgoFilter) * 3600000);
+            filtered = filtered.filter((lead: Lead) => new Date(lead.post_time) >= cutoff);
+        }
 
         // Apply posted date filter
         if (postedDateFilter?.startDate || postedDateFilter?.endDate) {
@@ -77,7 +84,7 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
             if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
             return 0;
         });
-    }, [leads, postedDateFilter, sortConfig]);
+    }, [leads, postedDateFilter, hoursAgoFilter, sortConfig]);
 
     const requestSort = (key: SortConfig['key']) => {
         let direction: 'asc' | 'desc' = 'asc';
@@ -107,12 +114,12 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
         <div className={`glass-card bg-slate-950/20 border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl relative flex flex-col ${maximized ? 'h-full w-full max-h-none' : 'max-h-[700px]'}`}>
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-[100px] -z-10" />
 
-            {/* Posted Date Filter UI */}
+            {/* Filter Bar */}
             <div className="border-b border-white/5 p-4 bg-slate-950/40">
                 <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-2">
                         <Calendar size={16} className="text-indigo-400" />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">Filter Posted Date:</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">Posted Date:</span>
                     </div>
                     <input
                         type="date"
@@ -130,12 +137,42 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                     {(postedDateFilter?.startDate || postedDateFilter?.endDate) && (
                         <button
                             onClick={() => setPostedDateFilter(null)}
-                            className="ml-2 p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded transition-all"
-                            title="Clear filter"
+                            className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded transition-all"
+                            title="Clear date filter"
                         >
                             <X size={14} />
                         </button>
                     )}
+
+                    <div className="w-px h-4 bg-white/10 mx-1" />
+
+                    {/* Hours ago filter */}
+                    <div className="flex items-center gap-2">
+                        <Clock size={14} className="text-indigo-400" />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">Posted within:</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <input
+                            type="number"
+                            min="1"
+                            max="720"
+                            placeholder="hrs"
+                            value={hoursAgoFilter}
+                            onChange={(e) => setHoursAgoFilter(e.target.value)}
+                            className="w-16 px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 focus:border-indigo-500 focus:outline-none text-center"
+                        />
+                        <span className="text-slate-500 text-[10px]">hours</span>
+                        {hoursAgoFilter && (
+                            <button
+                                onClick={() => setHoursAgoFilter('')}
+                                className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded transition-all"
+                                title="Clear hours filter"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+
                     <span className="ml-auto text-[9px] text-slate-500 font-bold italic">
                         Showing {sortedLeads.length} of {leads.length} listings
                     </span>
