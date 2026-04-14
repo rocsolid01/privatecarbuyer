@@ -194,7 +194,8 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                             <th className="w-[20%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Target Ident</th>
                             <SortHeader label="Price" sortKey="price" width="w-[8%]" />
                             <SortHeader label="Mileage" sortKey="mileage" width="w-[10%]" />
-                            <SortHeader label="AI Score" sortKey="ai_score" width="w-[18%]" />
+                            <SortHeader label="AI Score" sortKey="ai_score" width="w-[15%]" />
+                            <SortHeader label="Seller Intent" sortKey="motivation_score" width="w-[15%]" />
                             <SortHeader label="Year" sortKey="post_year" width="w-[7%]" />
                             <SortHeader label="City" sortKey="city" width="w-[8%]" />
                             <SortHeader label="Status" sortKey="title_status" width="w-[7%]" />
@@ -303,6 +304,50 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                             {lead.ai_notes || "Awaiting neural analysis..."}
                                         </p>
                                     </div>
+                                </td>
+                                {/* Seller Intent Column */}
+                                <td className="p-3">
+                                    {lead.motivation_score != null ? (() => {
+                                        const tier = lead.motivation_signals?.tier ?? (
+                                            lead.motivation_score >= 70 ? 'HOT' :
+                                            lead.motivation_score >= 40 ? 'WARM' : 'COLD'
+                                        );
+                                        const signals = lead.motivation_signals?.signals ?? [];
+                                        const tierStyle =
+                                            tier === 'HOT'    ? 'bg-orange-500/15 border-orange-500/40 text-orange-400' :
+                                            tier === 'WARM'   ? 'bg-yellow-500/15 border-yellow-500/30 text-yellow-400' :
+                                            tier === 'DEALER' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
+                                                                'bg-slate-500/10 border-white/5 text-slate-500';
+                                        const tierIcon =
+                                            tier === 'HOT'    ? '🔥' :
+                                            tier === 'WARM'   ? '⚡' :
+                                            tier === 'DEALER' ? '⚠' : '·';
+                                        return (
+                                            <div>
+                                                <div className="flex items-center gap-1.5 mb-1.5">
+                                                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md border font-black italic text-[9px] tracking-widest ${tierStyle}`}>
+                                                        <span>{tierIcon}</span>
+                                                        <span>{lead.motivation_score}/100</span>
+                                                    </div>
+                                                    <span className={`text-[8px] font-black uppercase tracking-[0.15em] ${
+                                                        tier === 'HOT' ? 'text-orange-400' :
+                                                        tier === 'WARM' ? 'text-yellow-400' : 'text-slate-600'
+                                                    }`}>{tier}</span>
+                                                </div>
+                                                {signals.length > 0 && (
+                                                    <div className="space-y-0.5">
+                                                        {signals.slice(0, 2).map((s: string, idx: number) => (
+                                                            <p key={idx} className="text-[8px] text-slate-500 italic leading-tight truncate" title={s}>
+                                                                · {s}
+                                                            </p>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })() : (
+                                        <span className="text-[8px] text-slate-700 italic">Pending</span>
+                                    )}
                                 </td>
                                 <td className="p-3 font-bold text-slate-300 italic tracking-tighter">
                                     {lead.year || lead.title.match(/\b(19|20)\d{2}\b/)?.[0] || '---'}

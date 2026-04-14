@@ -93,6 +93,12 @@ export type Lead = {
         flags: string[];
     } | null;
     is_dealer_flag: boolean | null;
+    motivation_score: number | null;
+    motivation_signals: {
+        score: number;
+        tier: 'HOT' | 'WARM' | 'COLD' | 'DEALER';
+        signals: string[];
+    } | null;
     status: 'New' | 'Contacted' | 'Negotiating' | 'Meeting Set' | 'Bought' | 'Dead';
     title_status: string | null;
     is_clean_title: boolean;
