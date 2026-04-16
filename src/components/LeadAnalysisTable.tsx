@@ -368,12 +368,33 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     </div>
                                 </td>
                                 <td className="p-3">
-                                    <div className="flex items-center gap-1.5 text-slate-500 font-black italic tracking-widest text-[8px] uppercase">
-                                        <Clock size={10} className="text-indigo-500" />
-                                        <span>
-                                            {Math.floor(Math.abs(new Date().getTime() - new Date(lead.post_time).getTime()) / (1000 * 60 * 60))}H AGO
-                                        </span>
-                                    </div>
+                                    {(() => {
+                                        const diffMs = Date.now() - new Date(lead.post_time).getTime();
+                                        const totalMins = Math.floor(diffMs / 60000);
+                                        const totalHrs = Math.floor(diffMs / 3600000);
+                                        const days = Math.floor(totalHrs / 24);
+                                        const remHrs = totalHrs % 24;
+                                        const isNew = totalHrs < 6;
+                                        let label = '';
+                                        if (totalMins < 60) {
+                                            label = `${totalMins}m ago`;
+                                        } else if (days === 0) {
+                                            label = `${totalHrs}h ago`;
+                                        } else if (remHrs === 0) {
+                                            label = `${days}d ago`;
+                                        } else {
+                                            label = `${days}d ${remHrs}h ago`;
+                                        }
+                                        return (
+                                            <div className="flex items-center gap-1.5">
+                                                <Clock size={10} className={isNew ? 'text-emerald-400' : 'text-indigo-500'} />
+                                                <span className={`font-black italic tracking-widest text-[8px] uppercase ${isNew ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                                    {label}
+                                                </span>
+                                                {isNew && <span className="px-1 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[7px] font-black text-emerald-400 uppercase tracking-widest">NEW</span>}
+                                            </div>
+                                        );
+                                    })()}
                                 </td>
                                 <td className="p-3">
                                     <select
