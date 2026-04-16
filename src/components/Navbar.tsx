@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Car, Zap, Clock, ArrowRight, Bell } from 'lucide-react';
+import { Car, Zap, Clock, ArrowRight, Bell, BookOpen } from 'lucide-react';
 
 export const Navbar = () => {
     return (
@@ -19,7 +19,8 @@ export const Navbar = () => {
                         <div className="hidden sm:flex items-center gap-6">
                             {[
                                 { href: '/settings', icon: Zap, label: 'Control Center' },
-                                { href: '/analytics', icon: Clock, label: 'Analytics' }
+                                { href: '/analytics', icon: Clock, label: 'Analytics' },
+                                { href: '/playbook', icon: BookOpen, label: 'Playbook' }
                             ].map((item) => (
                                 <Link
                                     key={item.href}
