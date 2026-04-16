@@ -869,18 +869,6 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </section>
-                    {/* Lead Activity Log */}
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between px-6">
-                            <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">Engine Activity Log</h3>
-                            <div className="flex items-center gap-4">
-                                {/* Moved to header */}
-                            </div>
-                        </div>
-                        <div className="h-px w-full bg-white/5 mt-2 mb-6" />
-                        <ActivityLog />
-                    </div>
-
                     {/* Tactical Listing Section (Cloned) */}
                     <div className={`pt-16 border-t border-white/5 space-y-8 ${isTableMaximized ? 'fixed inset-0 z-[100] bg-[#020617] p-8 overflow-hidden flex flex-col' : ''}`}>
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
@@ -943,6 +931,9 @@ export default function SettingsPage() {
                             maximized={isTableMaximized}
                         />
                     </div>
+
+                    {/* Engine Activity Log — Terminal Style */}
+                    <ActivityLog />
                 </div>
 
                 {selectedLeads.size > 0 && (
