@@ -882,11 +882,7 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => setIsFilterModalOpen(true)}
-                                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                        isFilterModalOpen 
-                                            ? 'bg-indigo-500 text-white shadow-[0_0_30px_rgba(99,102,241,0.4)]' 
-                                            : 'bg-slate-950/60 text-slate-400 border border-white/5 hover:border-indigo-500/30'
-                                    }`}
+                                    className="flex items-center gap-2 px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 text-white shadow-[0_0_24px_rgba(99,102,241,0.45)] hover:bg-indigo-500 hover:shadow-[0_0_36px_rgba(99,102,241,0.6)] active:scale-95"
                                 >
                                     <Sliders size={14} />
                                     Filter Data
