@@ -1,7 +1,7 @@
 "use client";
 
 import { Navbar } from '@/components/Navbar';
-import { BookOpen, Settings, Filter, Maximize2, Terminal, Target, TrendingUp, Zap, MessageSquare, Clock, ArrowRight, Flame } from 'lucide-react';
+import { Settings, Terminal, TrendingUp, Zap, MessageSquare, ArrowRight, Flame } from 'lucide-react';
 
 type Step = {
     number: string;
@@ -30,18 +30,6 @@ const steps: Step[] = [
     },
     {
         number: '02',
-        icon: BookOpen,
-        iconColor: 'text-violet-400',
-        title: 'Save a Config Template',
-        subtitle: 'Settings Page → Save Template',
-        bullets: [
-            { label: 'Name by use case', desc: '"Daily Hunt", "Weekend Sweep", "Trucks Only" — load back in one click.' },
-            { label: 'Why it matters', desc: 'Prevents accidental misconfiguration before a pulse. Swap between strategies instantly.' },
-        ],
-        tip: 'Save a template before changing anything. You\'ll want to go back.',
-    },
-    {
-        number: '03',
         icon: Zap,
         iconColor: 'text-amber-400',
         title: 'Run a Pulse',
@@ -55,20 +43,6 @@ const steps: Step[] = [
     },
     {
         number: '04',
-        icon: Target,
-        iconColor: 'text-emerald-400',
-        title: 'Work the Tactical Listing',
-        subtitle: 'Analytics or Settings → Tactical Listing table',
-        bullets: [
-            { label: 'Sort by AI Score first', desc: 'Highest deal quality at the top. Score = composite of price vs market, mileage, NHTSA data, seller signals.' },
-            { label: 'Seller Intent: HOT (orange, 70+)', desc: 'Urgency signals detected — moving, cash only, price drops. Prioritize these even over higher AI scores with cold sellers.' },
-            { label: 'Posted column — exact age', desc: '"2h ago", "1d 4h ago". Anything under 6h gets a NEW badge. Hit those first — less competition.' },
-            { label: 'Filter Data button', desc: 'Set Max Days Old (24–48h) to cut stale listings. Set Min Margin to only show deals worth calling.' },
-            { label: 'AI Score vs Margin', desc: 'Score = deal quality. Margin = estimated profit. A 90-score / $500 margin is a pass. A 72-score / $4k margin is a call.' },
-        ],
-    },
-    {
-        number: '05',
         icon: MessageSquare,
         iconColor: 'text-sky-400',
         title: 'Update Lead Status As You Work',
@@ -82,7 +56,7 @@ const steps: Step[] = [
         tip: 'Close Rate on the dashboard tells you which score ranges actually close. Track it weekly.',
     },
     {
-        number: '06',
+        number: '05',
         icon: Terminal,
         iconColor: 'text-slate-400',
         title: 'Read the Activity Log',
