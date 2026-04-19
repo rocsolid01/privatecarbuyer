@@ -199,7 +199,7 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                             <SortHeader label="Year" sortKey="post_year" width="w-[7%]" />
                             <SortHeader label="City" sortKey="city" width="w-[8%]" />
                             <SortHeader label="Status" sortKey="title_status" width="w-[7%]" />
-                            <th className="w-[8%] p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Posted</th>
+                            <SortHeader label="Posted" sortKey="post_time" width="w-[8%]" />
                             <SortHeader label="Protocol" sortKey="status" width="w-[8%]" />
                             <SortHeader label="Scrape Time" sortKey="created_at" width="w-[10%]" />
                             <th className="p-3 py-5 text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap text-right pr-8 w-[8%]">Intercept</th>
