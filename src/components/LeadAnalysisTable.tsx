@@ -44,7 +44,7 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
     onSelectAll,
     maximized = false
 }: LeadAnalysisTableProps) => {
-    const [sortConfig, setSortConfig] = useState({ key: 'post_time', direction: 'desc' } as any);
+    const [sortConfig, setSortConfig] = useState({ key: 'ai_score', direction: 'desc' } as any);
     const [postedDateFilter, setPostedDateFilter] = useState<{ startDate: string; endDate: string } | null>(null);
     const [hoursAgoFilter, setHoursAgoFilter] = useState<string>('');
 
