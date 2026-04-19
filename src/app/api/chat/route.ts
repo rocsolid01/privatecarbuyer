@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
                 'Authorization': `Bearer sk-o6Mj6nSSD5kuH13h0zgjmw`,
             },
             body: JSON.stringify({
-                model: 'Mixtral-8x7B-Instruct-v0.1',
+                model: 'Llama-3.2-11B-Vision-Instruct',
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
                     ...messages,
