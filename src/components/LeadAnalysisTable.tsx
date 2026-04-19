@@ -369,29 +369,21 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                 </td>
                                 <td className="p-3">
                                     {(() => {
-                                        const diffMs = Date.now() - new Date(lead.post_time).getTime();
-                                        const totalMins = Math.floor(diffMs / 60000);
-                                        const totalHrs = Math.floor(diffMs / 3600000);
-                                        const days = Math.floor(totalHrs / 24);
-                                        const remHrs = totalHrs % 24;
-                                        const isNew = totalHrs < 6;
-                                        let label = '';
-                                        if (totalMins < 60) {
-                                            label = `${totalMins}m ago`;
-                                        } else if (days === 0) {
-                                            label = `${totalHrs}h ago`;
-                                        } else if (remHrs === 0) {
-                                            label = `${days}d ago`;
-                                        } else {
-                                            label = `${days}d ${remHrs}h ago`;
-                                        }
+                                        const d = new Date(lead.post_time);
+                                        const isNew = (Date.now() - d.getTime()) < 6 * 3600000;
+                                        const dateStr = d.toLocaleDateString('en-CA'); // YYYY-MM-DD
+                                        const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
                                         return (
-                                            <div className="flex items-center gap-1.5">
-                                                <Clock size={10} className={isNew ? 'text-emerald-400' : 'text-indigo-500'} />
-                                                <span className={`font-black italic tracking-widest text-[8px] uppercase ${isNew ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                                    {label}
-                                                </span>
-                                                {isNew && <span className="px-1 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[7px] font-black text-emerald-400 uppercase tracking-widest">NEW</span>}
+                                            <div className="space-y-0.5">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Clock size={9} className={isNew ? 'text-emerald-400' : 'text-indigo-500'} />
+                                                    <span className={`font-black text-[8px] tabular-nums ${isNew ? 'text-emerald-400' : 'text-slate-400'}`}>{dateStr}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 pl-3.5">
+                                                    <span className="text-slate-600 text-[8px] font-black">/</span>
+                                                    <span className={`text-[8px] font-black ${isNew ? 'text-emerald-400' : 'text-slate-500'}`}>{timeStr}</span>
+                                                    {isNew && <span className="px-1 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[7px] font-black text-emerald-400 uppercase tracking-widest">NEW</span>}
+                                                </div>
                                             </div>
                                         );
                                     })()}
@@ -408,10 +400,23 @@ export const LeadAnalysisTable: React.FC<LeadAnalysisTableProps> = ({
                                     </select>
                                 </td>
                                 <td className="p-3">
-                                    <div className="flex items-center gap-1.5 text-slate-500 font-black italic tracking-widest text-[8px] uppercase">
-                                        <Clock size={10} className="text-emerald-500" />
-                                        <span>{new Date(lead.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                                    </div>
+                                    {(() => {
+                                        const d = new Date(lead.created_at);
+                                        const dateStr = d.toLocaleDateString('en-CA');
+                                        const timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+                                        return (
+                                            <div className="space-y-0.5">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Clock size={9} className="text-emerald-500" />
+                                                    <span className="font-black text-[8px] text-slate-400 tabular-nums">{dateStr}</span>
+                                                </div>
+                                                <div className="pl-3.5 flex items-center gap-1.5">
+                                                    <span className="text-slate-600 text-[8px] font-black">/</span>
+                                                    <span className="text-[8px] font-black text-slate-500">{timeStr}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </td>
                                 <td className="p-3 text-right pr-8">
                                     <div className="flex justify-end gap-1">
