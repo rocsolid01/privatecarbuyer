@@ -21,6 +21,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
             <a href="#features" className="hover:text-indigo-400 transition-colors">The Tech</a>
             <a href="#how-it-works" className="hover:text-indigo-400 transition-colors">The Engine</a>
+            <Link href="/playbook" className="hover:text-indigo-400 transition-colors">Playbook</Link>
           </div>
           <div className="flex items-center gap-6">
             <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-indigo-400 transition-colors">Log In</Link>
