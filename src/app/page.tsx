@@ -2,39 +2,17 @@
 
 import Link from 'next/link';
 import { Car, Zap, Target, ArrowRight } from 'lucide-react';
+import { Navbar } from '@/components/Navbar';
 
 export default function LandingPage() {
   return (
     <div className="bg-[#020617] text-slate-50 min-h-screen font-sans selection:bg-indigo-500/30">
 
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-slate-950/40 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-indigo-600 p-2 rounded-xl shadow-lg shadow-indigo-500/20">
-              <Car className="text-white" size={24} />
-            </div>
-            <span className="font-black text-xl tracking-tighter text-white uppercase italic">
-              PRIVATE CAR <span className="text-indigo-500">BUYER</span>
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-            <a href="#features" className="hover:text-indigo-400 transition-colors">The Tech</a>
-            <a href="#how-it-works" className="hover:text-indigo-400 transition-colors">The Engine</a>
-            <Link href="/playbook" className="hover:text-indigo-400 transition-colors">Playbook</Link>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-indigo-400 transition-colors">Log In</Link>
-            <Link href="/settings" className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 transition-all hover:scale-105">
-              Access Control Center
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <main>
         {/* Hero Section */}
-        <section className="relative pt-32 pb-20 overflow-hidden">
+        <section className="relative pt-16 pb-20 overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-blue-50/50 dark:from-blue-900/10 to-transparent -z-10" />
           <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
             <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-4 py-1.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase mb-8 animate-pulse">

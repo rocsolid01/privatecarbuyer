@@ -78,20 +78,14 @@ export async function POST(req: NextRequest) {
     try {
         const { messages } = await req.json();
 
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            console.error('[Chat] GEMINI_API_KEY not set');
-            return NextResponse.json({ error: 'AI unavailable' }, { status: 502 });
-        }
-
-        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+        const res = await fetch('https://api.totalgpt.ai/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
+                'Authorization': `Bearer sk-o6Mj6nSSD5kuH13h0zgjmw`,
             },
             body: JSON.stringify({
-                model: 'gemini-2.0-flash',
+                model: 'Llama-3.2-11B-Vision-Instruct',
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
                     ...messages,
@@ -103,7 +97,7 @@ export async function POST(req: NextRequest) {
 
         if (!res.ok) {
             const err = await res.text();
-            console.error('[Chat] Gemini error:', err);
+            console.error('[Chat] TotalGPT error:', err);
             return NextResponse.json({ error: 'AI unavailable' }, { status: 502 });
         }
 
